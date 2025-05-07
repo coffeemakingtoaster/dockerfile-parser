@@ -5,3 +5,4 @@
 - [ ] Instructions
 - [ ] Comments
 - [ ] Multiline commands
+- [ ] Stage reference detection
