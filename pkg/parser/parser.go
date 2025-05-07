@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/ast"
+	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/util"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
 )
@@ -60,5 +61,19 @@ func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 	return &ast.StageNode{
 		Identifier: "anon",
 		Image:      t.Content,
+	}
+}
+
+func (p Parser) parseAdd(t token.Token) *ast.AddInstructionNode {
+	paths := parsePossibleArray(t.Content)
+	return &ast.AddInstructionNode{
+		Source:      paths[0 : len(paths)-2],
+		Destination: paths[len(paths)-2],
+		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
+		CheckSum:    util.GetFromParamsWithDefault(t.Params, "checksum", ""),
+		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", ""),
+		Chmod:       util.GetFromParamsWithDefault(t.Params, "chmod", ""),
+		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
+		Exclude:     util.GetFromParamsWithDefault(t.Params, "chmod", "exclude"),
 	}
 }

@@ -41,7 +41,7 @@ type StageNode struct {
 
 // ADD
 type AddInstructionNode struct {
-	Source      string
+	Source      []string
 	Destination string
 	KeepGitDir  bool
 	CheckSum    string
