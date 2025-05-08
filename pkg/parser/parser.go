@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/ast"
@@ -62,6 +63,9 @@ func (p *Parser) Parse() ast.StageNode {
 			localRoot.Instructions = append(localRoot.Instructions, node)
 		case token.EXPOSE:
 			node := p.parseExpose(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.HEALTHCHECK:
+			node := p.parseHealthCheck(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
@@ -151,5 +155,19 @@ func (p Parser) parseExpose(t token.Token) ast.InstructionNode {
 		Port:  v[0],
 		IsTCP: isTcp,
 	}
+}
 
+func (p Parser) parseHealthCheck(t token.Token) ast.InstructionNode {
+	if t.Content == "NONE" {
+		return &ast.HealthcheckInstructionNode{CancelStatement: true}
+	}
+	retries, _ := strconv.Atoi(util.GetFromParamsWithDefault(t.Params, "retries", "3"))
+	return &ast.HealthcheckInstructionNode{
+		CancelStatement: false,
+		Interval:        util.GetFromParamsWithDefault(t.Params, "interval", "30s"),
+		Timeout:         util.GetFromParamsWithDefault(t.Params, "timeout", "30s"),
+		StartPeriod:     util.GetFromParamsWithDefault(t.Params, "start-period", "0s"),
+		StartInterval:   util.GetFromParamsWithDefault(t.Params, "start-interval", "5s"),
+		Retries:         retries,
+	}
 }

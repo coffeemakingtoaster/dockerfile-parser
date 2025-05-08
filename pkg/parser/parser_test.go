@@ -109,6 +109,10 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 		if *expected.(*ast.ExposeInstructionNode) != *ac {
 			return fmt.Sprintf("ARG instruction mismatch: Expected %v Got %v", expected, ac)
 		}
+	case *ast.HealthcheckInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.HealthcheckInstructionNode), ac) {
+			return fmt.Sprintf("HEALTHCHECK instruction mismatch: Expected %v Got %v", expected, ac)
+		}
 
 	default:
 		return "Unknown ast node type"
@@ -272,6 +276,33 @@ func TestInstructionParsing(t *testing.T) {
 				IsTCP: true,
 			},
 			},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.HEALTHCHECK,
+					Content: "cp test1 test2",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.HealthcheckInstructionNode{
+				CancelStatement: false,
+				Interval:        "30s",
+				Timeout:         "30s",
+				StartPeriod:     "0s",
+				StartInterval:   "5s",
+				Retries:         3,
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.HEALTHCHECK,
+					Content: "NONE",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.HealthcheckInstructionNode{
+				CancelStatement: true,
+			}},
 		},
 	}
 

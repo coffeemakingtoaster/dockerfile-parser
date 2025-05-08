@@ -98,11 +98,13 @@ type FromInstructionNode struct {
 
 // HEALTHCHECK
 type HealthcheckInstructionNode struct {
-	Interval    string
-	Timeout     string
-	StartPeriod string
-	Retries     int
-	Cmd         []string // CMD or NONE
+	Interval        string
+	Timeout         string
+	StartPeriod     string
+	StartInterval   string
+	Retries         int
+	Cmd             []string // CMD or NONE
+	CancelStatement bool     // setting it to None overwrites previous
 }
 
 // LABEL
