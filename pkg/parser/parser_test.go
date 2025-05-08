@@ -224,6 +224,20 @@ func TestInstructionParsing(t *testing.T) {
 				Exec: []string{"cp", "./source1", "./source2", "../../dest"},
 			}},
 		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.ENV,
+					Content: "ABC=test sample=\"val1 val2\"",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.EnvInstructionNode{
+				Pairs: map[string]string{
+					"ABC":    "test",
+					"sample": "\"val1 val2\"",
+				},
+			}},
+		},
 	}
 
 	for _, c := range testCases {

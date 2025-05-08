@@ -126,5 +126,10 @@ func (p Parser) parseEntryPoint(t token.Token) ast.InstructionNode {
 	return &ast.EntrypointInstructionNode{
 		Exec: parsePossibleArray(t.Content),
 	}
+}
 
+func (p Parser) parseEnv(t token.Token) ast.InstructionNode {
+	return &ast.EnvInstructionNode{
+		Pairs: parseAssigns(t.Content),
+	}
 }
