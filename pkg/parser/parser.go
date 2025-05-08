@@ -45,6 +45,18 @@ func (p *Parser) Parse() ast.StageNode {
 		case token.ADD:
 			node := p.parseAdd(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.ARG:
+			node := p.parseArg(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.CMD:
+			node := p.parseCmd(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.COPY:
+			node := p.parseCopy(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.ENTRYPOINT:
+			node := p.parseEntryPoint(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
 		}
@@ -73,7 +85,7 @@ func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 
 func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 	paths := parsePossibleArray(t.Content)
-	return ast.AddInstructionNode{
+	return &ast.AddInstructionNode{
 		Source:      paths[0 : len(paths)-1],
 		Destination: paths[len(paths)-1],
 		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
@@ -83,4 +95,36 @@ func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
 		Exclude:     util.GetFromParamsWithDefault(t.Params, "exclude", ""),
 	}
+}
+
+func (p Parser) parseArg(t token.Token) ast.InstructionNode {
+	key, value := parseAssign(t.Content)
+	return &ast.ArgInstructionNode{
+		Name:  key,
+		Value: value,
+	}
+}
+
+func (p Parser) parseCmd(t token.Token) ast.InstructionNode {
+	return &ast.CmdInstructionNode{
+		Cmd: parsePossibleArray(t.Content),
+	}
+}
+
+func (p Parser) parseCopy(t token.Token) ast.InstructionNode {
+	paths := parsePossibleArray(t.Content)
+	return &ast.CopyInstructionNode{
+		Source:      paths[0 : len(paths)-1],
+		Destination: paths[len(paths)-1],
+		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
+		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", ""),
+		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
+	}
+}
+
+func (p Parser) parseEntryPoint(t token.Token) ast.InstructionNode {
+	return &ast.EntrypointInstructionNode{
+		Exec: parsePossibleArray(t.Content),
+	}
+
 }

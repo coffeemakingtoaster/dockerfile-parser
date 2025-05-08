@@ -10,7 +10,7 @@ type InstructionNode interface {
 }
 
 // Satisfy interface
-func (AddInstructionNode) InstructionNode()          {}
+func (*AddInstructionNode) InstructionNode()         {}
 func (*ArgInstructionNode) InstructionNode()         {}
 func (*CmdInstructionNode) InstructionNode()         {}
 func (*CopyInstructionNode) InstructionNode()        {}
@@ -65,7 +65,7 @@ type CmdInstructionNode struct {
 
 // COPY
 type CopyInstructionNode struct {
-	Source      string
+	Source      []string
 	Destination string
 	Chown       string
 	From        string

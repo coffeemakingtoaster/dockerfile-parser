@@ -6,4 +6,6 @@
 - [ ] Comments
 - [ ] Multiline commands
 - [ ] Stage reference detection
-- [ ] Optional array parsing where supported
+- [x] Optional array parsing where supported
+- [ ] Arg behaviour parsing when not actively setting a value
+
