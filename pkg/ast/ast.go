@@ -119,7 +119,7 @@ type MaintainerInstructionNode struct {
 
 // ONBUILD
 type OnbuildInstructionNode struct {
-	Trigger *InstructionNode
+	Trigger InstructionNode
 }
 
 // RUN

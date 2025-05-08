@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/ast"
+	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/lexer"
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/util"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
@@ -66,6 +67,9 @@ func (p *Parser) Parse() ast.StageNode {
 			localRoot.Instructions = append(localRoot.Instructions, node)
 		case token.HEALTHCHECK:
 			node := p.parseHealthCheck(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.MAINTAINER:
+			node := p.parseMaintainer(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
@@ -170,4 +174,36 @@ func (p Parser) parseHealthCheck(t token.Token) ast.InstructionNode {
 		StartInterval:   util.GetFromParamsWithDefault(t.Params, "start-interval", "5s"),
 		Retries:         retries,
 	}
+}
+
+func (p Parser) parseLabel(t token.Token) ast.InstructionNode {
+	return &ast.LabelInstructionNode{
+		Pairs: parseAssigns(t.Content),
+	}
+}
+
+func (p Parser) parseMaintainer(t token.Token) ast.InstructionNode {
+	return &ast.MaintainerInstructionNode{
+		Name: t.Content,
+	}
+}
+
+func (p Parser) parseOnBuild(t token.Token) ast.InstructionNode {
+	// Easiest way to do this is by simply running the instruction through the entire lexer -> parser process
+	l := lexer.New([]string{t.Content})
+	wrappedToken := l.Lex()[0]
+	tmpP := NewParser([]token.Token{wrappedToken})
+	parsed := tmpP.Parse().Instructions[0]
+	return &ast.OnbuildInstructionNode{
+		Trigger: parsed,
+	}
+}
+
+func (p Parser) parseRun(t token.Token) ast.InstructionNode {
+	// For now we skip the shell stuff with eof/...
+	return &ast.RunInstructionNode{
+		Cmd:       parsePossibleArray(t.Content),
+		ShellForm: false,
+	}
+
 }

@@ -103,17 +103,28 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 		}
 	case *ast.EnvInstructionNode:
 		if !reflect.DeepEqual(expected.(*ast.EnvInstructionNode).Pairs, ac.Pairs) {
-			return fmt.Sprintf("ENTRYPOINT instruction command mismatch: Expected %v Got %v", expected.(*ast.EnvInstructionNode).Pairs, ac.Pairs)
+			return fmt.Sprintf("ENV instruction command mismatch: Expected %v Got %v", expected.(*ast.EnvInstructionNode).Pairs, ac.Pairs)
 		}
 	case *ast.ExposeInstructionNode:
 		if *expected.(*ast.ExposeInstructionNode) != *ac {
-			return fmt.Sprintf("ARG instruction mismatch: Expected %v Got %v", expected, ac)
+			return fmt.Sprintf("EXPOSE instruction mismatch: Expected %v Got %v", expected, ac)
 		}
 	case *ast.HealthcheckInstructionNode:
 		if !reflect.DeepEqual(expected.(*ast.HealthcheckInstructionNode), ac) {
 			return fmt.Sprintf("HEALTHCHECK instruction mismatch: Expected %v Got %v", expected, ac)
 		}
-
+	case *ast.LabelInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.LabelInstructionNode), ac) {
+			return fmt.Sprintf("LABEL instruction mismatch: Expected %v Got %v", expected, ac)
+		}
+	case *ast.MaintainerInstructionNode:
+		if *expected.(*ast.MaintainerInstructionNode) != *ac {
+			return fmt.Sprintf("MAINTAINER instruction mismatch: Expected %v Got %v", expected, ac)
+		}
+	case *ast.RunInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.RunInstructionNode), ac) {
+			return fmt.Sprintf("RUN instruction mismatch: Expected %v Got %v", expected, ac)
+		}
 	default:
 		return "Unknown ast node type"
 	}
@@ -302,6 +313,53 @@ func TestInstructionParsing(t *testing.T) {
 			},
 			Expected: []ast.InstructionNode{&ast.HealthcheckInstructionNode{
 				CancelStatement: true,
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.LABEL,
+					Content: "A=B",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.LabelInstructionNode{
+				Pairs: map[string]string{"A": "B"},
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.MAINTAINER,
+					Content: "Peter Lustig",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.MaintainerInstructionNode{
+				Name: "Peter Lustig",
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.ONBUILD,
+					Content: "MAINTAINER Peter Test",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.OnbuildInstructionNode{
+				Trigger: &ast.MaintainerInstructionNode{
+					Name: "Peter Test",
+				},
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.RUN,
+					Content: "cp ./a ./b",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.RunInstructionNode{
+				Cmd:       []string{"cp", "./a", "./b"},
+				ShellForm: false,
 			}},
 		},
 	}
