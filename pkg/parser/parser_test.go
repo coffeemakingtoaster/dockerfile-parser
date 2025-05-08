@@ -101,6 +101,15 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 		if !reflect.DeepEqual(expected.(*ast.EntrypointInstructionNode).Exec, ac.Exec) {
 			return fmt.Sprintf("ENTRYPOINT instruction command mismatch: Expected %v Got %v", expected.(*ast.EntrypointInstructionNode).Exec, ac.Exec)
 		}
+	case *ast.EnvInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.EnvInstructionNode).Pairs, ac.Pairs) {
+			return fmt.Sprintf("ENTRYPOINT instruction command mismatch: Expected %v Got %v", expected.(*ast.EnvInstructionNode).Pairs, ac.Pairs)
+		}
+	case *ast.ExposeInstructionNode:
+		if *expected.(*ast.ExposeInstructionNode) != *ac {
+			return fmt.Sprintf("ARG instruction mismatch: Expected %v Got %v", expected, ac)
+		}
+
 	default:
 		return "Unknown ast node type"
 	}
@@ -237,6 +246,32 @@ func TestInstructionParsing(t *testing.T) {
 					"sample": "\"val1 val2\"",
 				},
 			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.EXPOSE,
+					Content: "3100/udp",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.ExposeInstructionNode{
+				Port:  "3100",
+				IsTCP: false,
+			},
+			},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.EXPOSE,
+					Content: "5000/tcp",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.ExposeInstructionNode{
+				Port:  "5000",
+				IsTCP: true,
+			},
+			},
 		},
 	}
 

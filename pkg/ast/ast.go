@@ -85,8 +85,8 @@ type EnvInstructionNode struct {
 
 // EXPOSE
 type ExposeInstructionNode struct {
-	Port     string
-	Protocol string // optional: "tcp" or "udp"
+	Port  string
+	IsTCP bool // can only be tcp or udp
 }
 
 // FROM

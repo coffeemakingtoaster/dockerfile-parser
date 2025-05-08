@@ -57,6 +57,12 @@ func (p *Parser) Parse() ast.StageNode {
 		case token.ENTRYPOINT:
 			node := p.parseEntryPoint(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.ENV:
+			node := p.parseEnv(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.EXPOSE:
+			node := p.parseExpose(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
 		}
@@ -132,4 +138,18 @@ func (p Parser) parseEnv(t token.Token) ast.InstructionNode {
 	return &ast.EnvInstructionNode{
 		Pairs: parseAssigns(t.Content),
 	}
+}
+
+func (p Parser) parseExpose(t token.Token) ast.InstructionNode {
+	isTcp := true
+	v := strings.Split(t.Content, "/")
+	// protocol is present
+	if len(v) > 1 {
+		isTcp = v[1] == "tcp"
+	}
+	return &ast.ExposeInstructionNode{
+		Port:  v[0],
+		IsTCP: isTcp,
+	}
+
 }
