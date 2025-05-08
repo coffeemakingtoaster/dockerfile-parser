@@ -30,10 +30,51 @@ func compareStageNodes(expected, actual ast.StageNode) string {
 	}
 
 	if actual.Identifier != expected.Identifier {
-		return fmt.Sprintf("Stage image mismatch: Expected %s Got %s", expected.Image, actual.Image)
+		return fmt.Sprintf("Stage identifier mismatch: Expected %s Got %s", expected.Identifier, actual.Identifier)
 	}
 	return ""
+}
 
+func compareAddInstructionNode(expected, actual ast.AddInstructionNode) string {
+	if expected.CheckSum != actual.CheckSum {
+		return fmt.Sprintf("Add instruction checksum param mismatch: Expected %s Got %s", expected.CheckSum, actual.CheckSum)
+	}
+	if expected.Link != actual.Link {
+		return fmt.Sprintf("Add instruction link param mismatch: Expected %v Got %v", expected.Link, actual.Link)
+	}
+	if expected.KeepGitDir != actual.KeepGitDir {
+		return fmt.Sprintf("Add instruction keep git dir param mismatch: Expected %v Got %v", expected.KeepGitDir, actual.KeepGitDir)
+	}
+	if expected.Chmod != actual.Chmod {
+		return fmt.Sprintf("Add instruction chmod param mismatch: Expected %s Got %s", expected.Chmod, actual.Chmod)
+	}
+	if expected.Chown != actual.Chown {
+		return fmt.Sprintf("Add instruction chown param mismatch: Expected %s Got %s", expected.Chown, actual.Chown)
+	}
+	if expected.Exclude != actual.Exclude {
+		return fmt.Sprintf("Add instruction exclude param mismatch: Expected %s Got %s", expected.Exclude, actual.Exclude)
+	}
+	if expected.Destination != actual.Destination {
+		return fmt.Sprintf("Add instruction destination mismatch: Expected %s Got %s", expected.Destination, actual.Destination)
+	}
+	if len(expected.Source) != len(actual.Source) {
+		return fmt.Sprintf("Add instruction source length mismatch: Expected %d Got %d", len(expected.Source), len(actual.Source))
+	}
+	for i := range expected.Source {
+		if expected.Source[i] != actual.Source[i] {
+			return fmt.Sprintf("Add isntruction source mismatch: Expected %v Got %v", expected.Source, actual.Source)
+		}
+	}
+	return ""
+}
+
+func compareInstructionNode(expected, actual ast.InstructionNode) string {
+	switch ac := actual.(type) {
+	case ast.AddInstructionNode:
+		return compareAddInstructionNode(expected.(ast.AddInstructionNode), ac)
+	default:
+		return "Unknown ast node type"
+	}
 }
 
 func TestFromParsing(t *testing.T) {
@@ -42,12 +83,24 @@ func TestFromParsing(t *testing.T) {
 			Input: []token.Token{
 				{
 					Kind:    token.FROM,
-					Content: "alpine:lastest",
+					Content: "alpine:latest",
 				},
 			},
 			Expected: &ast.StageNode{
 				Identifier: "anon",
-				Image:      "alpine:lastest",
+				Image:      "alpine:latest",
+			},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.FROM,
+					Content: "alpine:latest AS base",
+				},
+			},
+			Expected: &ast.StageNode{
+				Identifier: "base",
+				Image:      "alpine:latest",
 			},
 		},
 	}
@@ -71,7 +124,7 @@ func TestAddParsing(t *testing.T) {
 					Content: "./source1 ./source2 ../../dest",
 				},
 			},
-			Expected: []ast.InstructionNode{&ast.AddInstructionNode{
+			Expected: []ast.InstructionNode{ast.AddInstructionNode{
 				Source:      []string{"./source1", "./source2"},
 				Destination: "../../dest",
 				KeepGitDir:  false,
@@ -88,8 +141,9 @@ func TestAddParsing(t *testing.T) {
 		p := parser.NewParser(append([]token.Token{baseImageLine}, c.Input...))
 		instructions := p.Parse().Instructions
 		for i := range instructions {
-			if instructions[i] != &c.Expected[i] {
-				t.Errorf("Instruction comparison error: Expected %v Got %v", c.Expected[i], instructions[i])
+			err := compareInstructionNode(instructions[i], c.Expected[i])
+			if err != "" {
+				t.Error(err)
 			}
 
 		}

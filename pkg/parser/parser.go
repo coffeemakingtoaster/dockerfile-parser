@@ -33,6 +33,7 @@ func (p *Parser) Parse() ast.StageNode {
 			}
 			p.rootNode = p.parseFrom(t)
 			p.currentTokenIndex += 1
+			localRoot = p.rootNode
 			continue
 		}
 		switch t.Kind {
@@ -41,6 +42,9 @@ func (p *Parser) Parse() ast.StageNode {
 			// TODO: this should detect if stages reference it
 			localRoot.Subsequent = append(localRoot.Subsequent, node)
 			localRoot = node
+		case token.ADD:
+			node := p.parseAdd(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
 		}
@@ -51,29 +55,32 @@ func (p *Parser) Parse() ast.StageNode {
 }
 
 func (p Parser) parseFrom(t token.Token) *ast.StageNode {
-	if !(strings.Contains(t.Content, "AS") || strings.Contains(t.Content, "as")) {
+	if !(strings.Contains(t.Content, " AS ") || strings.Contains(t.Content, " as ")) {
 		return &ast.StageNode{
 			Identifier: "anon",
 			Image:      t.Content,
 		}
 	}
-	// TODO: parse name
+	content := parsePossibleArray(t.Content)
+	image := content[0]
+	// as := content[1]
+	identifier := strings.Join(content[2:], " ")
 	return &ast.StageNode{
-		Identifier: "anon",
-		Image:      t.Content,
+		Identifier: identifier,
+		Image:      image,
 	}
 }
 
-func (p Parser) parseAdd(t token.Token) *ast.AddInstructionNode {
+func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 	paths := parsePossibleArray(t.Content)
-	return &ast.AddInstructionNode{
-		Source:      paths[0 : len(paths)-2],
-		Destination: paths[len(paths)-2],
+	return ast.AddInstructionNode{
+		Source:      paths[0 : len(paths)-1],
+		Destination: paths[len(paths)-1],
 		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
 		CheckSum:    util.GetFromParamsWithDefault(t.Params, "checksum", ""),
 		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", ""),
 		Chmod:       util.GetFromParamsWithDefault(t.Params, "chmod", ""),
 		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
-		Exclude:     util.GetFromParamsWithDefault(t.Params, "chmod", "exclude"),
+		Exclude:     util.GetFromParamsWithDefault(t.Params, "exclude", ""),
 	}
 }

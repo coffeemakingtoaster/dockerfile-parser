@@ -10,7 +10,7 @@ type InstructionNode interface {
 }
 
 // Satisfy interface
-func (*AddInstructionNode) InstructionNode()         {}
+func (AddInstructionNode) InstructionNode()          {}
 func (*ArgInstructionNode) InstructionNode()         {}
 func (*CmdInstructionNode) InstructionNode()         {}
 func (*CopyInstructionNode) InstructionNode()        {}
@@ -31,9 +31,10 @@ func (*WorkdirInstructionNode) InstructionNode()     {}
 
 type StageNode struct {
 	Node
-	Identifier   string
-	Subsequent   []*StageNode
-	Instructions []*InstructionNode
+	Identifier string
+	Subsequent []*StageNode
+	// This could be a tree in of itself...but docker Instructions dont really have a lot of logic so that may be overkill
+	Instructions []InstructionNode
 	Image        string
 }
 
