@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
@@ -24,6 +23,9 @@ func getParam(input string) (string, string, string, bool) {
 	endIndex := len(input) - 1
 	currentWordStartIndex := 0
 	seenCharacters := false
+	if len(input) == 0 {
+		return key, value, input, ok
+	}
 	for i := range input {
 		if i+1 == len(input)-1 {
 			break
@@ -88,15 +90,19 @@ func buildToken(kind int, content string) token.Token {
 func mergeLines(input []string) []string {
 	target := []string{}
 	buffer := ""
+
 	for i := range input {
-		buffer = buffer + strings.TrimSpace(input[i])
-		if strings.HasSuffix(input[i], "\\") {
+		in := strings.TrimSpace(input[i])
+		if strings.HasPrefix(in, "#") {
+			continue
+		}
+		buffer = buffer + in
+		if strings.HasSuffix(in, "\\") {
 			buffer = strings.TrimSuffix(buffer, "\\")
 			continue
 		}
 		target = append(target, buffer)
 		buffer = ""
 	}
-	fmt.Printf("%+q\n", target)
 	return target
 }

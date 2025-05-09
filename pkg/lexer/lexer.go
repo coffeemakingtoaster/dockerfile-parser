@@ -24,7 +24,8 @@ func (l *Lexer) Lex() []token.Token {
 		case token.EOF:
 			break
 		case token.ILLEGAL:
-			panic("Illegal instruction")
+			fmt.Println("Illegal instruction encountered")
+			//panic("Illegal instruction")
 		default:
 			t := buildToken(instruction, content)
 			tokens = append(tokens, t)

@@ -12,15 +12,18 @@ import (
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/parser"
 )
 
-func ParsePath(path string, recursive bool) {
+func ParsePath(path string, recursive bool) int {
 	isFile, err := isFile(path)
 	if err != nil {
 		panic(err)
 	}
 	if isFile {
 		parseAndDisplayFileList([]string{path})
+		return 1
 	} else {
-		parseAndDisplayFileList(buildDirPathList(path, recursive))
+		paths := buildDirPathList(path, recursive)
+		parseAndDisplayFileList(paths)
+		return len(paths)
 	}
 }
 
@@ -66,6 +69,7 @@ func isFile(path string) (bool, error) {
 
 func parseAndDisplayFileList(paths []string) {
 	for _, path := range paths {
+		fmt.Printf("---\t%s\t---\n", path)
 		file, err := os.Open(path)
 		if err != nil {
 			panic(err)
@@ -88,7 +92,11 @@ func parseAndDisplayFileList(paths []string) {
 		p := parser.NewParser(l.Lex())
 		root := p.Parse()
 
-		fmt.Printf("---\t%s\t---\n", path)
-		display.DisplayAst(&root)
+		if root == nil {
+			fmt.Printf("Dockerfile at path %s contains no valid instruction of no FROM", path)
+			continue
+		}
+
+		display.DisplayAst(root)
 	}
 }

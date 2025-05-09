@@ -189,7 +189,7 @@ func TestFromParsing(t *testing.T) {
 
 	for _, c := range testCases {
 		p := parser.NewParser(c.Input)
-		err := compareStageNodes(*c.Expected, p.Parse())
+		err := compareStageNodes(*c.Expected, *p.Parse())
 		if err != "" {
 			t.Error(err)
 		}
@@ -451,6 +451,15 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.WorkdirInstructionNode{Path: "/app"}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.CMD,
+					Content: "",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.CmdInstructionNode{Cmd: []string{}}},
 		},
 	}
 	for _, c := range testCases {

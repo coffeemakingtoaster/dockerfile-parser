@@ -21,6 +21,9 @@ func parseConfirmedArray(input string) []string {
 	wordStart := 0
 	input = strings.Trim(input, "[")
 	input = strings.Trim(input, "]")
+	if len(input) == 0 {
+		return res
+	}
 	for i := range input {
 		if input[i] == ',' {
 			cur := input[wordStart:i]

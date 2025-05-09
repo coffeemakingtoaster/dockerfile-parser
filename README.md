@@ -12,3 +12,5 @@ WIP
 - [ ] Arg behaviour parsing when not actively setting a value
 - [ ] Several edge cases and special scenarios for a few instructions
 - [ ] Dockerfiles not starting with FROM (apparently they can start with ARG)
+- [ ] Support for dockerfiles with EOF blocks  (this is probably the worst offender with this: https://github.com/apache/airflow/blob/main/Dockerfile)
+- [ ] Support for expose statement exposing multiple ports

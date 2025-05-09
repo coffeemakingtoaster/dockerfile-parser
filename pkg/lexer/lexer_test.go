@@ -94,6 +94,16 @@ func TestInstructionParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			Input: []string{"CMD"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:    token.CMD,
+					Params:  map[string]string{},
+					Content: "",
+				},
+			},
+		},
 	}
 	for _, v := range testCases {
 		l := lexer.New(v.Input)

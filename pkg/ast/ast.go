@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strings"
 )
 
 const colorGreen = "\033[0;32m"
@@ -118,11 +119,11 @@ type EnvInstructionNode struct {
 }
 
 func (ei *EnvInstructionNode) ToString() string {
-	mapString := ""
+	mapStrings := []string{}
 	for k, v := range ei.Pairs {
-		mapString += fmt.Sprintf("%s=%s,", k, v)
+		mapStrings = append(mapStrings, fmt.Sprintf("%s=%s", k, v))
 	}
-	return fmt.Sprintf("%sENV%s %s %s", colorPurple, colorCyan, mapString, colorNone)
+	return fmt.Sprintf("%sENV%s %s %s", colorPurple, colorCyan, strings.Join(mapStrings, ","), colorNone)
 }
 
 // EXPOSE
@@ -159,11 +160,11 @@ type LabelInstructionNode struct {
 }
 
 func (li *LabelInstructionNode) ToString() string {
-	mapString := ""
+	mapStrings := []string{}
 	for k, v := range li.Pairs {
-		mapString += fmt.Sprintf("%s=%s,", k, v)
+		mapStrings = append(mapStrings, fmt.Sprintf("%s=%s", k, v))
 	}
-	return fmt.Sprintf("%sLABEL%s %s %s", colorPurple, colorCyan, mapString, colorNone)
+	return fmt.Sprintf("%sLABEL%s %s %s", colorPurple, colorCyan, strings.Join(mapStrings, ","), colorNone)
 }
 
 // MAINTAINER (deprecated)
