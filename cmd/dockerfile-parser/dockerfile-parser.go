@@ -6,7 +6,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/wrapper"
+	"github.com/coffeemakingtoaster/dockerfile-parser/internal/pkg/wrapper"
 )
 
 func main() {

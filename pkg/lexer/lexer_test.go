@@ -106,8 +106,11 @@ func TestInstructionParse(t *testing.T) {
 		},
 	}
 	for _, v := range testCases {
-		l := lexer.New(v.Input)
-		got := l.Lex()
+		l := lexer.NewFromInput(v.Input)
+		got, err := l.Lex()
+		if err != nil {
+			t.Fatalf("Failed to lex: %s", err.Error())
+		}
 		for i := range got {
 			err := compareTokens(v.ExpectedOutput[i], got[i])
 			if err != "" {

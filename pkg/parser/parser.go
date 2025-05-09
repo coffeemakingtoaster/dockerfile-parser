@@ -1,3 +1,4 @@
+// Parser package
 package parser
 
 import (
@@ -12,16 +13,20 @@ import (
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
 )
 
+// Parser
 type Parser struct {
 	tokens            []token.Token
 	currentTokenIndex int
 	rootNode          *ast.StageNode
 }
 
+// Create new parser
 func NewParser(tokens []token.Token) Parser {
 	return Parser{tokens: tokens, currentTokenIndex: 0}
 }
 
+// Parse the token provided during init
+// Return the root stage node of the ast
 func (p *Parser) Parse() *ast.StageNode {
 	localRoot := p.rootNode
 	for {
@@ -217,14 +222,19 @@ func (p Parser) parseMaintainer(t token.Token) ast.InstructionNode {
 
 func (p Parser) parseOnBuild(t token.Token) ast.InstructionNode {
 	// Easiest way to do this is by simply running the instruction through the entire lexer -> parser process
-	l := lexer.New([]string{t.Content})
-	wrappedToken := l.Lex()[0]
+	l := lexer.NewFromInput([]string{t.Content})
+	tokens, err := l.Lex()
+	if err != nil {
+		return &ast.OnbuildInstructionNode{
+			Trigger: &ast.UnknownInstructionNode{Text: t.Content},
+		}
+	}
 	tmpP := NewParser(
 		append(
 			[]token.Token{{
 				Kind:    token.FROM,
 				Content: "placeholder:placeholder"},
-			}, wrappedToken))
+			}, tokens...))
 	parsed := tmpP.Parse().Instructions[0]
 	return &ast.OnbuildInstructionNode{
 		Trigger: parsed,

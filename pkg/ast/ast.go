@@ -1,3 +1,4 @@
+// Package containing all Abstract Syntax Tree node structs
 package ast
 
 import (
@@ -12,10 +13,12 @@ const colorNone = "\033[0m"
 
 // Calling this an ast may be a stretch...
 
+// Generic Node interfave
 type Node interface {
 	ToString() string
 }
 
+// An InstructionNode is everything that does not define a stage
 type InstructionNode interface {
 	Node
 	InstructionNode()
@@ -40,6 +43,10 @@ func (*UserInstructionNode) InstructionNode()        {}
 func (*VolumeInstructionNode) InstructionNode()      {}
 func (*WorkdirInstructionNode) InstructionNode()     {}
 
+// For the edge case that instruction supplied to ONBUILD cannot be parsed
+func (*UnknownInstructionNode) InstructionNode() {}
+
+// Stagenode defines the current stage for the instructions
 type StageNode struct {
 	Node
 	Identifier string
@@ -238,4 +245,14 @@ type WorkdirInstructionNode struct {
 
 func (wi *WorkdirInstructionNode) ToString() string {
 	return fmt.Sprintf("%sWORKDIR%s %s %s", colorPurple, colorCyan, wi.Path, colorNone)
+}
+
+// Unparseable instruction node
+// Relevant if the instruction passed to ONBUILD could not be parsed
+type UnknownInstructionNode struct {
+	Text string
+}
+
+func (ui *UnknownInstructionNode) ToString() string {
+	return fmt.Sprintf("%s!UNPARSEABLE!%s %s %s", colorPurple, colorCyan, ui.Text, colorNone)
 }
