@@ -13,7 +13,7 @@ type Lexer struct {
 }
 
 func New(input []string) Lexer {
-	return Lexer{input, 0}
+	return Lexer{mergeLines(input), 0}
 }
 
 func (l *Lexer) Lex() []token.Token {
