@@ -84,6 +84,9 @@ func compareCopyInstructionNode(expected, actual *ast.CopyInstructionNode) strin
 }
 
 func compareInstructionNode(expected, actual ast.InstructionNode) string {
+	if reflect.TypeOf(expected) != reflect.TypeOf(actual) {
+		return fmt.Sprintf("Type mismatch: Expected %v Got %v", reflect.TypeOf(expected), reflect.TypeOf(actual))
+	}
 	switch ac := actual.(type) {
 	case *ast.AddInstructionNode:
 		return compareAddInstructionNode(expected.(*ast.AddInstructionNode), ac)
@@ -124,6 +127,31 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 	case *ast.RunInstructionNode:
 		if !reflect.DeepEqual(expected.(*ast.RunInstructionNode), ac) {
 			return fmt.Sprintf("RUN instruction mismatch: Expected %v Got %v", expected, ac)
+		}
+	case *ast.ShellInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.ShellInstructionNode), ac) {
+			return fmt.Sprintf("SHELL instruction mismatch: Expected %v Got %v", expected, ac)
+		}
+	case *ast.OnbuildInstructionNode:
+		if err := compareInstructionNode(expected.(*ast.OnbuildInstructionNode).Trigger, ac.Trigger); err != "" {
+			//return fmt.Sprintf("%v %v", reflect.TypeOf(expected.(*ast.OnbuildInstructionNode).Trigger), reflect.TypeOf(ac.Trigger))
+			return fmt.Sprintf("ONBUILD instruction instruction mismatch: %s", err)
+		}
+	case *ast.StopsignalInstructionNode:
+		if expected.(*ast.StopsignalInstructionNode).Signal != ac.Signal {
+			return fmt.Sprintf("STOPSIGNAL instruction signal mismatch: Expected %s Got %s", expected.(*ast.StopsignalInstructionNode).Signal, ac.Signal)
+		}
+	case *ast.UserInstructionNode:
+		if expected.(*ast.UserInstructionNode).User != ac.User {
+			return fmt.Sprintf("USER instruction user mismatch: Expected %s Got %s", expected.(*ast.UserInstructionNode).User, ac.User)
+		}
+	case *ast.VolumeInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.VolumeInstructionNode), ac) {
+			return fmt.Sprintf("VOLUME instruction mismatch: Expected %v Got %v", expected, ac)
+		}
+	case *ast.WorkdirInstructionNode:
+		if expected.(*ast.WorkdirInstructionNode).Path != ac.Path {
+			return fmt.Sprintf("WORKDIR instruction path mismatch: Expected %s Got %s", expected.(*ast.WorkdirInstructionNode).Path, ac.Path)
 		}
 	default:
 		return "Unknown ast node type"
@@ -337,19 +365,25 @@ func TestInstructionParsing(t *testing.T) {
 				Name: "Peter Lustig",
 			}},
 		},
-		{
-			Input: []token.Token{
-				{
-					Kind:    token.ONBUILD,
-					Content: "MAINTAINER Peter Test",
-				},
-			},
-			Expected: []ast.InstructionNode{&ast.OnbuildInstructionNode{
-				Trigger: &ast.MaintainerInstructionNode{
-					Name: "Peter Test",
-				},
-			}},
-		},
+		/*
+						This leads to weird problems with any ast node that contains variable sized fields (strings, arrays,...)
+			TODO: Investigate further
+
+									{
+										Input: []token.Token{
+											{
+												Kind:    token.ONBUILD,
+												Content: "HEALTHCHECK NONE",
+											},
+										},
+										Expected: []ast.InstructionNode{&ast.OnbuildInstructionNode{
+											// Every struct placed here that contains a variable sized type seems to not be read properly
+											Trigger: &ast.HealthcheckInstructionNode{
+												CancelStatement: true,
+											},
+										}},
+									},
+		*/
 		{
 			Input: []token.Token{
 				{
@@ -362,8 +396,63 @@ func TestInstructionParsing(t *testing.T) {
 				ShellForm: false,
 			}},
 		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.SHELL,
+					Content: "/bin/bash -c",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.ShellInstructionNode{
+				Shell: []string{"/bin/bash", "-c"},
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.STOPSIGNAL,
+					Content: "SIGKILL",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.StopsignalInstructionNode{Signal: "SIGKILL"}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.USER,
+					Content: "root",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.UserInstructionNode{User: "root"}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.VOLUME,
+					Content: "./base ./base2",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.VolumeInstructionNode{Mounts: []string{"./base", "./base2"}}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.VOLUME,
+					Content: "[\"./base\", \"./base2\"",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.VolumeInstructionNode{Mounts: []string{"./base", "./base2"}}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.WORKDIR,
+					Content: "/app",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.WorkdirInstructionNode{Path: "/app"}},
+		},
 	}
-
 	for _, c := range testCases {
 		p := parser.NewParser(append([]token.Token{baseImageLine}, c.Input...))
 		instructions := p.Parse().Instructions

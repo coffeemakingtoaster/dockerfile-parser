@@ -68,8 +68,32 @@ func (p *Parser) Parse() ast.StageNode {
 		case token.HEALTHCHECK:
 			node := p.parseHealthCheck(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.LABEL:
+			node := p.parseLabel(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
 		case token.MAINTAINER:
 			node := p.parseMaintainer(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.ONBUILD:
+			node := p.parseOnBuild(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.RUN:
+			node := p.parseRun(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.SHELL:
+			node := p.parseShell(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.STOPSIGNAL:
+			node := p.parseStop(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.USER:
+			node := p.parseUser(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.WORKDIR:
+			node := p.parseWorkdir(t)
+			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.VOLUME:
+			node := p.parseVolume(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
@@ -192,7 +216,12 @@ func (p Parser) parseOnBuild(t token.Token) ast.InstructionNode {
 	// Easiest way to do this is by simply running the instruction through the entire lexer -> parser process
 	l := lexer.New([]string{t.Content})
 	wrappedToken := l.Lex()[0]
-	tmpP := NewParser([]token.Token{wrappedToken})
+	tmpP := NewParser(
+		append(
+			[]token.Token{{
+				Kind:    token.FROM,
+				Content: "placeholder:placeholder"},
+			}, wrappedToken))
 	parsed := tmpP.Parse().Instructions[0]
 	return &ast.OnbuildInstructionNode{
 		Trigger: parsed,
@@ -205,5 +234,28 @@ func (p Parser) parseRun(t token.Token) ast.InstructionNode {
 		Cmd:       parsePossibleArray(t.Content),
 		ShellForm: false,
 	}
+}
 
+func (p Parser) parseShell(t token.Token) ast.InstructionNode {
+	return &ast.ShellInstructionNode{
+		Shell: parsePossibleArray(t.Content),
+	}
+}
+
+func (p Parser) parseStop(t token.Token) ast.InstructionNode {
+	return &ast.StopsignalInstructionNode{
+		Signal: t.Content,
+	}
+}
+
+func (p Parser) parseUser(t token.Token) ast.InstructionNode {
+	return &ast.UserInstructionNode{User: t.Content}
+}
+
+func (p Parser) parseVolume(t token.Token) ast.InstructionNode {
+	return &ast.VolumeInstructionNode{Mounts: parsePossibleArray(t.Content)}
+}
+
+func (p Parser) parseWorkdir(t token.Token) ast.InstructionNode {
+	return &ast.WorkdirInstructionNode{Path: t.Content}
 }
