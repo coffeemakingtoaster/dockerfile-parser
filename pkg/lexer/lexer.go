@@ -12,8 +12,9 @@ import (
 
 // Lexer
 type Lexer struct {
-	lines       []string
-	currentLine int
+	lines        []string
+	currentLine  int
+	currentIndex int
 }
 
 // Create new lexer based on the a file
@@ -23,12 +24,12 @@ func NewFromFile(path string) (Lexer, error) {
 	if err != nil {
 		return Lexer{}, err
 	}
-	return Lexer{mergeLines(lines), 0}, nil
+	return Lexer{mergeLines(lines), 0, 0}, nil
 }
 
 // Create new lexer based on the input provided
 func NewFromInput(input []string) Lexer {
-	return Lexer{mergeLines(input), 0}
+	return Lexer{mergeLines(input), 0, 0}
 }
 
 // Lex lines provided when initializing lexer
@@ -47,12 +48,14 @@ func (l *Lexer) Lex() ([]token.Token, error) {
 			tokens = append(tokens, t)
 		}
 		l.currentLine += 1
+		l.currentIndex = 0
 	}
 	return tokens, nil
 }
 
 func (l *Lexer) Reset() {
 	l.currentLine = 0
+	l.currentIndex = 0
 }
 
 // TODO: Migrate to a system of a pointer within the line rather than passing the remaining content around

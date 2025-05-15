@@ -249,7 +249,8 @@ func TestFromParsing(t *testing.T) {
 
 	for _, c := range testCases {
 		p := parser.NewParser(c.Input)
-		err := compareStageNodes(*c.Expected, *p.Parse())
+		// Pass first in because there is no need to compare the rootnode
+		err := compareStageNodes(*c.Expected, *p.Parse().Subsequent[0])
 		if err != "" {
 			t.Error(err)
 		}

@@ -23,7 +23,7 @@ type Parser struct {
 
 // Create new parser
 func NewParser(tokens []token.Token) Parser {
-	return Parser{tokens: tokens, currentTokenIndex: 0}
+	return Parser{tokens: tokens, currentTokenIndex: 0, rootNode: &ast.StageNode{Identifier: "root"}}
 }
 
 // Parse the token provided during init
@@ -36,20 +36,6 @@ func (p *Parser) Parse() *ast.StageNode {
 			break
 		}
 		t := p.tokens[p.currentTokenIndex]
-		if p.rootNode == nil {
-			if p.tokens[p.currentTokenIndex].Kind != token.FROM {
-				fmt.Println("Skipped instruction that was before from. This is non permanent behaviour and will be fixed")
-				p.currentTokenIndex += 1
-				continue
-			}
-			p.rootNode = p.parseFrom(t)
-			p.currentTokenIndex += 1
-			if p.rootNode.Identifier != "anon" {
-				namedStageLookup[p.rootNode.Identifier] = p.rootNode
-			}
-			localRoot = p.rootNode
-			continue
-		}
 		switch t.Kind {
 		case token.FROM:
 			node := p.parseFrom(t)
