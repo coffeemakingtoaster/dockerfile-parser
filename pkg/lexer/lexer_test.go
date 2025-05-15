@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	testdata "github.com/coffeemakingtoaster/dockerfile-parser/internal/pkg/test_data"
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/lexer"
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
 )
@@ -116,6 +117,17 @@ func TestInstructionParse(t *testing.T) {
 			if err != "" {
 				t.Errorf("%s (%s)", err, v.Input)
 			}
+		}
+	}
+}
+
+func BenchmarkLexer(b *testing.B) {
+	for range b.N {
+		// Lexer creation performs action on startup -> run this in the loop
+		l := lexer.NewFromInput(testdata.SampleDockerfile)
+		_, err := l.Lex()
+		if err != nil {
+			b.Fatalf("Lexing failed: %s", err.Error())
 		}
 	}
 }

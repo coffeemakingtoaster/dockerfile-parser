@@ -51,6 +51,10 @@ func (l *Lexer) Lex() ([]token.Token, error) {
 	return tokens, nil
 }
 
+func (l *Lexer) Reset() {
+	l.currentLine = 0
+}
+
 // TODO: Migrate to a system of a pointer within the line rather than passing the remaining content around
 func (l *Lexer) getCurrentInstruction() (int, string) {
 	if l.currentLine == len(l.lines) {

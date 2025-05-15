@@ -36,7 +36,6 @@ func (p *Parser) Parse() *ast.StageNode {
 		t := p.tokens[p.currentTokenIndex]
 		if p.rootNode == nil {
 			if p.tokens[p.currentTokenIndex].Kind != token.FROM {
-				//panic(fmt.Sprintf("Could not create ast. Expected first node to be FROM but was %d", t.Kind))
 				fmt.Println("Skipped instruction that was before from. This is non permanent behaviour and will be fixed")
 				p.currentTokenIndex += 1
 				continue
@@ -151,7 +150,6 @@ func (p Parser) parseArg(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseCmd(t token.Token) ast.InstructionNode {
-	fmt.Printf("%v", t)
 	return &ast.CmdInstructionNode{
 		Cmd: parsePossibleArray(t.Content),
 	}
