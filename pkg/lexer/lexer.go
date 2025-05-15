@@ -66,8 +66,8 @@ func (l *Lexer) getCurrentInstruction() (int, string) {
 		return l.getCurrentInstruction()
 	}
 	if currentLine[0] == '#' {
-		l.currentLine += 1
-		return l.getCurrentInstruction()
+		strippedLine := strings.Trim(currentLine[1:], " ")
+		return token.COMMENT, strippedLine
 	}
 	cmd, content := splitFirstWord(currentLine)
 	instruction, ok := token.TokenLookupTable[strings.ToUpper(cmd)]

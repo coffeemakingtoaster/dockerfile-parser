@@ -71,6 +71,9 @@ func getParam(input string) (string, string, string, bool) {
 }
 
 func buildToken(kind int, content string) token.Token {
+	if kind == token.COMMENT {
+		return token.Token{Kind: kind, Content: content}
+	}
 	params := make(map[string]string)
 	for {
 		key, value, strippedContent, ok := getParam(content)

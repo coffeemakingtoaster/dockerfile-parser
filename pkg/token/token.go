@@ -22,6 +22,7 @@ const (
 	USER        //Set user and group ID.
 	VOLUME      //Create volume mounts.
 	WORKDIR     //Change working directory.
+	COMMENT     //Comment line
 )
 
 var TokenLookupTable = map[string]int{

@@ -3,6 +3,7 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,7 @@ func NewParser(tokens []token.Token) Parser {
 // Return the root stage node of the ast
 func (p *Parser) Parse() *ast.StageNode {
 	localRoot := p.rootNode
+	namedStageLookup := make(map[string]*ast.StageNode)
 	for {
 		if p.currentTokenIndex == len(p.tokens) {
 			break
@@ -42,14 +44,19 @@ func (p *Parser) Parse() *ast.StageNode {
 			}
 			p.rootNode = p.parseFrom(t)
 			p.currentTokenIndex += 1
+			if p.rootNode.Identifier != "anon" {
+				namedStageLookup[p.rootNode.Identifier] = p.rootNode
+			}
 			localRoot = p.rootNode
 			continue
 		}
 		switch t.Kind {
 		case token.FROM:
 			node := p.parseFrom(t)
-			// TODO: this should detect if stages reference it
 			localRoot.Subsequent = append(localRoot.Subsequent, node)
+			if node.Identifier != "anon" {
+				namedStageLookup[node.Identifier] = node
+			}
 			localRoot = node
 		case token.ADD:
 			node := p.parseAdd(t)
@@ -63,6 +70,14 @@ func (p *Parser) Parse() *ast.StageNode {
 		case token.COPY:
 			node := p.parseCopy(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
+			if node.(*ast.CopyInstructionNode).From != "" {
+				// Check if from actually is a stage -> can also be image
+				if val, ok := namedStageLookup[node.(*ast.CopyInstructionNode).From]; ok {
+					if !slices.Contains(val.Subsequent, localRoot) {
+						val.Subsequent = append(val.Subsequent, localRoot)
+					}
+				}
+			}
 		case token.ENTRYPOINT:
 			node := p.parseEntryPoint(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
@@ -163,6 +178,7 @@ func (p Parser) parseCopy(t token.Token) ast.InstructionNode {
 		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
 		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", ""),
 		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
+		From:        util.GetFromParamsWithDefault(t.Params, "from", ""),
 	}
 }
 

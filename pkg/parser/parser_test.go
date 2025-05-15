@@ -35,6 +35,16 @@ func compareStageNodes(expected, actual ast.StageNode) string {
 	if actual.Identifier != expected.Identifier {
 		return fmt.Sprintf("Stage identifier mismatch: Expected %s Got %s", expected.Identifier, actual.Identifier)
 	}
+
+	if len(actual.Subsequent) != len(expected.Subsequent) {
+		return fmt.Sprintf("Stage subsequent length mismatch: Expected %d Got %d", len(expected.Subsequent), len(actual.Subsequent))
+	}
+
+	for i := range expected.Subsequent {
+		if err := compareStageNodes(*expected.Subsequent[i], *actual.Subsequent[i]); err != "" {
+			return err
+		}
+	}
 	return ""
 }
 
@@ -185,6 +195,54 @@ func TestFromParsing(t *testing.T) {
 			Expected: &ast.StageNode{
 				Identifier: "base",
 				Image:      "alpine:latest",
+			},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.FROM,
+					Content: "alpine:latest AS base",
+				},
+				{
+					Kind:    token.FROM,
+					Content: "alpine:padding AS padding",
+				},
+				{
+					Kind:    token.FROM,
+					Content: "alpine:next AS next",
+				},
+				{
+					Kind:    token.COPY,
+					Params:  map[string]string{"from": "base"},
+					Content: "./source1 ./source2 ../../dest",
+				},
+				{
+					Kind:    token.COPY,
+					Params:  map[string]string{"from": "base"},
+					Content: "./source1 ./source2 ../../dest",
+				},
+			},
+			Expected: &ast.StageNode{
+				Identifier: "base",
+				Image:      "alpine:latest",
+				Subsequent: []*ast.StageNode{
+					{
+						Identifier: "padding",
+						Image:      "alpine:padding",
+						Subsequent: []*ast.StageNode{
+							{
+								Identifier: "next",
+								Image:      "alpine:next",
+								Subsequent: []*ast.StageNode{},
+							},
+						},
+					},
+					{
+						Identifier: "next",
+						Image:      "alpine:next",
+						Subsequent: []*ast.StageNode{},
+					},
+				},
 			},
 		},
 	}

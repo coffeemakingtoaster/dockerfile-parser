@@ -105,6 +105,26 @@ func TestInstructionParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			Input: []string{"#test"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:    token.COMMENT,
+					Params:  map[string]string{},
+					Content: "test",
+				},
+			},
+		},
+		{
+			Input: []string{"# test"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:    token.COMMENT,
+					Params:  map[string]string{},
+					Content: "test",
+				},
+			},
+		},
 	}
 	for _, v := range testCases {
 		l := lexer.NewFromInput(v.Input)
