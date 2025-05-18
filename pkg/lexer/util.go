@@ -104,10 +104,13 @@ func (l *Lexer) buildToken(kind int) token.Token {
 		}
 		params[key] = value
 	}
+	startIndex := l.currentIndex
+	l.advanceToStartOfComment()
 	return token.Token{
-		Kind:    kind,
-		Params:  params,
-		Content: l.lines[l.currentLine][l.currentIndex:],
+		Kind:          kind,
+		Params:        params,
+		Content:       l.lines[l.currentLine][startIndex:l.currentIndex],
+		InlineComment: l.lines[l.currentLine][l.currentIndex:],
 	}
 }
 

@@ -53,7 +53,7 @@ func (l *Lexer) Lex() ([]token.Token, error) {
 	return tokens, nil
 }
 
-// TODO: Migrate to a system of a pointer within the line rather than passing the remaining content around
+// Advance index to end of instruction and return token kind
 func (l *Lexer) getCurrentInstruction() int {
 	if l.currentLine == len(l.lines) {
 		return token.EOF
@@ -73,4 +73,15 @@ func (l *Lexer) getCurrentInstruction() int {
 		return instruction
 	}
 	return token.ILLEGAL
+}
+
+// Advance index to end of content and start of comment
+// If no comment exist -> advance to end of content
+func (l *Lexer) advanceToStartOfComment() {
+	for l.currentIndex < len(l.lines[l.currentLine]) {
+		if l.expectCurrentCharacter('#') {
+			return
+		}
+		l.currentIndex++
+	}
 }

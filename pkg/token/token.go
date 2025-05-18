@@ -26,7 +26,7 @@ const (
 )
 
 var TokenLookupTable = map[string]int{
-	"ILLEGAL":     ILLEGAL,
+	"ILLEGAL":     ILLEGAL, // Can
 	"EOF":         EOF,
 	"ADD":         ADD,
 	"ARG":         ARG,
@@ -49,7 +49,8 @@ var TokenLookupTable = map[string]int{
 }
 
 type Token struct {
-	Kind    int
-	Params  map[string]string
-	Content string
+	Kind          int
+	Params        map[string]string
+	Content       string
+	InlineComment string
 }
