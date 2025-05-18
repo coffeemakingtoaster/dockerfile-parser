@@ -144,6 +144,9 @@ func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 
 func (p Parser) parseArg(t token.Token) ast.InstructionNode {
 	key, value := parseAssign(t.Content)
+	if len(key)+len(value) == 0 {
+		key = t.Content
+	}
 	return &ast.ArgInstructionNode{
 		Name:  key,
 		Value: value,

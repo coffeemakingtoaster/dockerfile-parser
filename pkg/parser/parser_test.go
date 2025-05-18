@@ -292,6 +292,18 @@ func TestInstructionParsing(t *testing.T) {
 		{
 			Input: []token.Token{
 				{
+					Kind:    token.ARG,
+					Content: "test",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.ArgInstructionNode{
+				Name:  "test",
+				Value: "",
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
 					Kind:    token.CMD,
 					Content: "echo hello testing",
 				},
