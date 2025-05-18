@@ -33,6 +33,7 @@ func NewFromInput(input []string) Lexer {
 }
 
 // Lex lines provided when initializing lexer
+// Technically this is both a lexer and a tokenizer in one
 // Returns tokens
 func (l *Lexer) Lex() ([]token.Token, error) {
 	tokens := []token.Token{}
@@ -78,8 +79,18 @@ func (l *Lexer) getCurrentInstruction() int {
 // Advance index to end of content and start of comment
 // If no comment exist -> advance to end of content
 func (l *Lexer) advanceToStartOfComment() {
+	stack := util.Stack[rune]{}
 	for l.currentIndex < len(l.lines[l.currentLine]) {
-		if l.expectCurrentCharacter('#') {
+		if l.expectCurrentCharacter('"') || l.expectCurrentCharacter('\'') || l.expectCurrentCharacter('`') {
+			if stack.TopEquals(l.getCurrentCharacter()) {
+				stack.Pop()
+			} else {
+				stack.Push(l.getCurrentCharacter())
+			}
+		}
+		if l.expectCurrentCharacter('#') && stack.Size() == 0 {
+			// Remove comment symbol
+			l.currentIndex = min(l.currentIndex+1, len(l.lines[l.currentLine]))
 			return
 		}
 		l.currentIndex++

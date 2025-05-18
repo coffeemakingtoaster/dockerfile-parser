@@ -32,6 +32,9 @@ func compareTokens(expected, actual token.Token) string {
 	if expected.Content != expected.Content {
 		return fmt.Sprintf("Token content mismatch: Expected %s Got %s", expected.Content, actual.Content)
 	}
+	if expected.InlineComment != actual.InlineComment {
+		return fmt.Sprintf("Token comment mismatch: Expected %s Got %s", expected.InlineComment, actual.InlineComment)
+	}
 	return ""
 }
 
@@ -132,7 +135,29 @@ func TestInstructionParse(t *testing.T) {
 					Kind:          token.RUN,
 					Params:        map[string]string{},
 					Content:       "echo a",
-					InlineComment: "test",
+					InlineComment: " test",
+				},
+			},
+		},
+		{
+			Input: []string{"RUN echo 'a # test'"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:          token.RUN,
+					Params:        map[string]string{},
+					Content:       "echo a #test",
+					InlineComment: "",
+				},
+			},
+		},
+		{
+			Input: []string{"RUN echo 'a # test' #another test"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:          token.RUN,
+					Params:        map[string]string{},
+					Content:       "echo a # test",
+					InlineComment: "another test",
 				},
 			},
 		},

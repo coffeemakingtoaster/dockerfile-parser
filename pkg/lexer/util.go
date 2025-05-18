@@ -31,6 +31,10 @@ func (l Lexer) expectCurrentCharacter(expected rune) bool {
 	return actual == byte(expected)
 }
 
+func (l Lexer) getCurrentCharacter() rune {
+	return rune(l.lines[l.currentLine][l.currentIndex])
+}
+
 func (l *Lexer) advanceParam() (string, string, bool) {
 	// TODO: clean this up
 	key := ""
