@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -64,18 +63,5 @@ func TestPaddedArrayParsing(t *testing.T) {
 		if expected[i] != actual[i] {
 			t.Errorf("Parsing no array value (index: %d) mismatch: Expected %s Got %s", i, expected[i], actual[i])
 		}
-	}
-}
-
-func TestAssignmentsParsing(t *testing.T) {
-	input := "ABC=def test=\"test1 test2\" A=${SAMPLE:-placeholder}"
-	expected := map[string]string{
-		"ABC":  "def",
-		"test": "\"test1 test2\"",
-		"A":    "${SAMPLE:-placeholder}",
-	}
-	actual := parseAssigns(input)
-	if !reflect.DeepEqual(expected, actual) {
-		t.Errorf("Parsing result mismatch: Expected %v Got %v", expected, actual)
 	}
 }

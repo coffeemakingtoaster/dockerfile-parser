@@ -23,7 +23,7 @@ type Parser struct {
 
 // Create new parser
 func NewParser(tokens []token.Token) Parser {
-	return Parser{tokens: tokens, currentTokenIndex: 0, rootNode: &ast.StageNode{Identifier: "root"}}
+	return Parser{tokens: tokens, currentTokenIndex: 0, rootNode: &ast.StageNode{Identifier: "root", ParserMetadata: make(map[string]string)}}
 }
 
 // Parse the token provided during init
@@ -103,6 +103,12 @@ func (p *Parser) Parse() *ast.StageNode {
 		case token.VOLUME:
 			node := p.parseVolume(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.PARSER_DIRECTIVE:
+			key, value := util.ParseAssign(t.Content)
+			localRoot.ParserMetadata[key] = value
+		case token.COMMENT:
+			node := &ast.CommentInstructionNode{Text: t.Content}
+			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
 		}
@@ -114,8 +120,9 @@ func (p *Parser) Parse() *ast.StageNode {
 func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 	if !(strings.Contains(t.Content, " AS ") || strings.Contains(t.Content, " as ")) {
 		return &ast.StageNode{
-			Identifier: "anon",
-			Image:      t.Content,
+			Identifier:     "anon",
+			Image:          t.Content,
+			ParserMetadata: make(map[string]string),
 		}
 	}
 	content := parsePossibleArray(t.Content)
@@ -123,8 +130,9 @@ func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 	// as := content[1]
 	identifier := strings.Join(content[2:], " ")
 	return &ast.StageNode{
-		Identifier: identifier,
-		Image:      image,
+		Identifier:     identifier,
+		Image:          image,
+		ParserMetadata: make(map[string]string),
 	}
 }
 
@@ -143,7 +151,7 @@ func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseArg(t token.Token) ast.InstructionNode {
-	key, value := parseAssign(t.Content)
+	key, value := util.ParseAssign(t.Content)
 	if len(key)+len(value) == 0 {
 		key = t.Content
 	}
@@ -179,7 +187,7 @@ func (p Parser) parseEntryPoint(t token.Token) ast.InstructionNode {
 
 func (p Parser) parseEnv(t token.Token) ast.InstructionNode {
 	return &ast.EnvInstructionNode{
-		Pairs: parseAssigns(t.Content),
+		Pairs: util.ParseAssigns(t.Content),
 	}
 }
 
@@ -219,7 +227,7 @@ func (p Parser) parseHealthCheck(t token.Token) ast.InstructionNode {
 
 func (p Parser) parseLabel(t token.Token) ast.InstructionNode {
 	return &ast.LabelInstructionNode{
-		Pairs: parseAssigns(t.Content),
+		Pairs: util.ParseAssigns(t.Content),
 	}
 }
 

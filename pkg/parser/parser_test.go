@@ -45,6 +45,9 @@ func compareStageNodes(expected, actual ast.StageNode) string {
 			return err
 		}
 	}
+	if !reflect.DeepEqual(expected.ParserMetadata, actual.ParserMetadata) {
+		return fmt.Sprintf("Stage parser metadata mismatch: Expected %v Got %v", expected.ParserMetadata, actual.ParserMetadata)
+	}
 	return ""
 }
 
@@ -112,6 +115,10 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 		}
 	case *ast.CopyInstructionNode:
 		return compareCopyInstructionNode(expected.(*ast.CopyInstructionNode), ac)
+	case *ast.CommentInstructionNode:
+		if !reflect.DeepEqual(expected.(*ast.CommentInstructionNode), ac) {
+			return fmt.Sprintf("COMMENT content mismatch: Expected %v Got %v", expected.(*ast.CommentInstructionNode).Text, ac.Text)
+		}
 	case *ast.EntrypointInstructionNode:
 		if !reflect.DeepEqual(expected.(*ast.EntrypointInstructionNode).Exec, ac.Exec) {
 			return fmt.Sprintf("ENTRYPOINT instruction command mismatch: Expected %v Got %v", expected.(*ast.EntrypointInstructionNode).Exec, ac.Exec)
@@ -181,8 +188,9 @@ func TestFromParsing(t *testing.T) {
 				},
 			},
 			Expected: &ast.StageNode{
-				Identifier: "anon",
-				Image:      "alpine:latest",
+				Identifier:     "anon",
+				Image:          "alpine:latest",
+				ParserMetadata: make(map[string]string),
 			},
 		},
 		{
@@ -193,8 +201,9 @@ func TestFromParsing(t *testing.T) {
 				},
 			},
 			Expected: &ast.StageNode{
-				Identifier: "base",
-				Image:      "alpine:latest",
+				Identifier:     "base",
+				Image:          "alpine:latest",
+				ParserMetadata: make(map[string]string),
 			},
 		},
 		{
@@ -202,6 +211,10 @@ func TestFromParsing(t *testing.T) {
 				{
 					Kind:    token.FROM,
 					Content: "alpine:latest AS base",
+				},
+				{
+					Kind:    token.PARSER_DIRECTIVE,
+					Content: "syntax=docker/dockerfile:1",
 				},
 				{
 					Kind:    token.FROM,
@@ -223,30 +236,33 @@ func TestFromParsing(t *testing.T) {
 				},
 			},
 			Expected: &ast.StageNode{
-				Identifier: "base",
-				Image:      "alpine:latest",
+				Identifier:     "base",
+				Image:          "alpine:latest",
+				ParserMetadata: map[string]string{"syntax": "docker/dockerfile:1"},
 				Subsequent: []*ast.StageNode{
 					{
 						Identifier: "padding",
 						Image:      "alpine:padding",
 						Subsequent: []*ast.StageNode{
 							{
-								Identifier: "next",
-								Image:      "alpine:next",
-								Subsequent: []*ast.StageNode{},
+								Identifier:     "next",
+								Image:          "alpine:next",
+								Subsequent:     []*ast.StageNode{},
+								ParserMetadata: make(map[string]string),
 							},
 						},
+						ParserMetadata: make(map[string]string),
 					},
 					{
-						Identifier: "next",
-						Image:      "alpine:next",
-						Subsequent: []*ast.StageNode{},
+						Identifier:     "next",
+						Image:          "alpine:next",
+						Subsequent:     []*ast.StageNode{},
+						ParserMetadata: make(map[string]string),
 					},
 				},
 			},
 		},
 	}
-
 	for _, c := range testCases {
 		p := parser.NewParser(c.Input)
 		// Pass first in because there is no need to compare the rootnode
@@ -558,6 +574,24 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.CmdInstructionNode{Cmd: []string{}}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.COMMENT,
+					Content: "some helpful comment",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.CommentInstructionNode{Text: "some helpful comment"}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.PARSER_DIRECTIVE,
+					Content: "syntax=docker/dockerfile:1",
+				},
+			},
+			Expected: []ast.InstructionNode{},
 		},
 	}
 	for _, c := range testCases {

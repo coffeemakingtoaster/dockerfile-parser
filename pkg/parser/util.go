@@ -39,32 +39,3 @@ func parseConfirmedArray(input string) []string {
 	res = append(res, cur)
 	return res
 }
-
-func parseAssigns(input string) map[string]string {
-	m := make(map[string]string)
-	parts := strings.Split(input, " ")
-	var key string
-	for _, p := range parts {
-		k, v := parseAssign(p)
-		// If there is a key but the next assignment could not be parsed:
-		// This should mean that the assigned value uses " and contains a space -> attach to previous key
-		if v == "" {
-			if key != "" {
-				m[key] = m[key] + " " + p
-			}
-			continue
-		}
-		key = k
-		m[key] = v
-	}
-	return m
-}
-
-func parseAssign(input string) (string, string) {
-	for i := range input {
-		if input[i] == '=' {
-			return input[:i], input[i+1:]
-		}
-	}
-	return "", ""
-}

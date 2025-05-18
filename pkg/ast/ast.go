@@ -42,6 +42,7 @@ func (*StopsignalInstructionNode) InstructionNode()  {}
 func (*UserInstructionNode) InstructionNode()        {}
 func (*VolumeInstructionNode) InstructionNode()      {}
 func (*WorkdirInstructionNode) InstructionNode()     {}
+func (*CommentInstructionNode) InstructionNode()     {}
 
 // For the edge case that instruction supplied to ONBUILD cannot be parsed
 func (*UnknownInstructionNode) InstructionNode() {}
@@ -52,8 +53,9 @@ type StageNode struct {
 	Identifier string
 	Subsequent []*StageNode
 	// This could be a tree in of itself...but docker Instructions dont really have a lot of logic so that may be overkill
-	Instructions []InstructionNode
-	Image        string
+	Instructions   []InstructionNode
+	Image          string
+	ParserMetadata map[string]string
 }
 
 func (sn *StageNode) ToString() string {
@@ -267,4 +269,12 @@ type UnknownInstructionNode struct {
 
 func (ui *UnknownInstructionNode) ToString() string {
 	return fmt.Sprintf("%s!UNPARSEABLE!%s %s %s", colorPurple, colorCyan, ui.Text, colorNone)
+}
+
+type CommentInstructionNode struct {
+	Text string
+}
+
+func (ci *CommentInstructionNode) ToString() string {
+	return fmt.Sprintf("%sCOMMENT%s %s %s", colorPurple, colorCyan, ci.Text, colorNone)
 }

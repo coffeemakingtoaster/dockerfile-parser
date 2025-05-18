@@ -2,8 +2,8 @@ package util
 
 import (
 	"bufio"
-	"errors"
 	"os"
+	"strings"
 )
 
 // Get value from passed map with a default
@@ -36,38 +36,31 @@ func ReadFileLines(path string) ([]string, error) {
 	return lines, nil
 }
 
-type Stack[T comparable] struct {
-	items []T
-}
-
-func (s Stack[T]) TopEquals(item T) bool {
-	if i, err := s.Peek(); err == nil {
-		return i == item
+func ParseAssigns(input string) map[string]string {
+	m := make(map[string]string)
+	parts := strings.Split(input, " ")
+	var key string
+	for _, p := range parts {
+		k, v := ParseAssign(p)
+		// If there is a key but the next assignment could not be parsed:
+		// This should mean that the assigned value uses " and contains a space -> attach to previous key
+		if v == "" {
+			if key != "" {
+				m[key] = m[key] + " " + p
+			}
+			continue
+		}
+		key = k
+		m[key] = v
 	}
-	return false
+	return m
 }
 
-func (s *Stack[T]) Peek() (T, error) {
-	if len(s.items) == 0 {
-		var res T
-		return res, errors.New("No item to peek")
+func ParseAssign(input string) (string, string) {
+	for i := range input {
+		if input[i] == '=' {
+			return input[:i], input[i+1:]
+		}
 	}
-	return s.items[len(s.items)-1], nil
-}
-
-func (s Stack[T]) Size() int {
-	return len(s.items)
-}
-
-func (s *Stack[T]) Push(item T) {
-	s.items = append(s.items, item)
-}
-
-func (s *Stack[T]) Pop() (T, error) {
-	res, err := s.Peek()
-	if err != nil {
-		return res, err
-	}
-	s.items = s.items[:len(s.items)-1]
-	return res, nil
+	return "", ""
 }

@@ -81,7 +81,11 @@ func (l *Lexer) getCurrentInstruction() int {
 func (l *Lexer) advanceToStartOfComment() {
 	stack := util.Stack[rune]{}
 	for l.currentIndex < len(l.lines[l.currentLine]) {
-		if l.expectCurrentCharacter('"') || l.expectCurrentCharacter('\'') || l.expectCurrentCharacter('`') {
+		if l.expectCurrentCharacter('"') || l.expectCurrentCharacter('\'') || l.expectCurrentCharacter('`') || (l.expectCurrentCharacter('$') && l.expectNextCharacter('{')) {
+			// Handle case of ${a#b} -> This does not count as a comment
+			if l.expectCurrentCharacter('$') {
+				l.currentIndex++
+			}
 			if stack.TopEquals(l.getCurrentCharacter()) {
 				stack.Pop()
 			} else {

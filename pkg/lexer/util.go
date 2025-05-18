@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
+	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/util"
 )
 
 func (l *Lexer) advanceWord() {
@@ -98,6 +99,9 @@ func (l *Lexer) advanceParam() (string, string, bool) {
 
 func (l *Lexer) buildToken(kind int) token.Token {
 	if kind == token.COMMENT {
+		if k, _ := util.ParseAssign(l.lines[l.currentLine][l.currentIndex:]); len(k) != 0 {
+			kind = token.PARSER_DIRECTIVE
+		}
 		return token.Token{Kind: kind, Content: l.lines[l.currentLine][l.currentIndex:]}
 	}
 	params := make(map[string]string)
