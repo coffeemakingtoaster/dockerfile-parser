@@ -6,87 +6,108 @@ import (
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/token"
 )
 
-func splitFirstWord(input string) (string, string) {
-	for i := range input {
-		if input[i] == ' ' {
-			return input[0:i], input[i:]
+func (l *Lexer) advanceWord() {
+	for l.currentIndex < len(l.lines[l.currentLine]) {
+		if l.lines[l.currentLine][l.currentIndex] == ' ' {
+			break
 		}
+		l.currentIndex++
 	}
-	return input, ""
 }
 
-func getParam(input string) (string, string, string, bool) {
+func (l Lexer) expectNextCharacter(expected rune) bool {
+	if l.currentIndex+1 >= len(l.lines[l.currentLine]) {
+		return false
+	}
+	actual := l.lines[l.currentLine][l.currentIndex+1]
+	return actual == byte(expected)
+}
+
+func (l Lexer) expectCurrentCharacter(expected rune) bool {
+	if l.currentIndex >= len(l.lines[l.currentLine]) {
+		return false
+	}
+	actual := l.lines[l.currentLine][l.currentIndex]
+	return actual == byte(expected)
+}
+
+func (l *Lexer) advanceParam() (string, string, bool) {
 	// TODO: clean this up
 	key := ""
 	value := ""
 	ok := false
-	endIndex := len(input) - 1
+	endIndex := len(l.lines[l.currentLine]) - 1
 	currentWordStartIndex := 0
 	seenCharacters := false
-	if len(input) == 0 {
-		return key, value, input, ok
+	if l.currentIndex == endIndex {
+		return key, value, ok
 	}
-	for i := range input {
-		if i+1 == len(input)-1 {
-			break
-		}
-		if input[i] == ' ' && !ok {
+	startIndex := l.currentIndex
+
+	for l.currentIndex < endIndex {
+		if l.expectCurrentCharacter(' ') && !ok {
 			if !seenCharacters {
+				l.currentIndex++
 				continue
 			}
 			break
 		}
 		seenCharacters = true
-		if input[i] == '-' && input[i+1] == '-' {
+		if l.expectCurrentCharacter('-') && l.expectNextCharacter('-') {
 			ok = true
-			i += 2
-			currentWordStartIndex = i
+			l.currentIndex += 2
+			currentWordStartIndex = l.currentIndex
+			l.currentIndex++
 			continue
 		}
 		if ok {
 			if len(key) == 0 {
-				if input[i] == '=' {
-					key = input[currentWordStartIndex:i]
-					currentWordStartIndex = i + 1
+				if l.expectCurrentCharacter('=') {
+					key = l.lines[l.currentLine][currentWordStartIndex:l.currentIndex]
+					currentWordStartIndex = l.currentIndex + 1
+					l.currentIndex++
 					continue
 				}
 				// Support params with no passed value
-				if input[i] == ' ' {
-					endIndex = i
+				if l.expectCurrentCharacter(' ') {
+					endIndex = l.currentIndex
 					value = "true"
-					key = input[currentWordStartIndex:i]
+					key = l.lines[l.currentLine][currentWordStartIndex:l.currentIndex]
 					break
 				}
 
 			} else {
-				if input[i] == ' ' {
-					endIndex = i
-					value = input[currentWordStartIndex:i]
+				if l.expectCurrentCharacter(' ') {
+					endIndex = l.currentIndex
+					value = l.lines[l.currentLine][currentWordStartIndex:l.currentIndex]
 					break
 				}
 			}
 		}
+		l.currentIndex++
 	}
-	return key, value, input[endIndex:], ok
+	if !ok {
+		l.currentIndex = startIndex
+	}
+	return key, value, ok
 }
 
-func buildToken(kind int, content string) token.Token {
+func (l *Lexer) buildToken(kind int) token.Token {
 	if kind == token.COMMENT {
-		return token.Token{Kind: kind, Content: content}
+		return token.Token{Kind: kind, Content: l.lines[l.currentLine][l.currentIndex:]}
 	}
 	params := make(map[string]string)
 	for {
-		key, value, strippedContent, ok := getParam(content)
+		key, value, ok := l.advanceParam()
 		if !ok {
 			break
 		}
-		content = strippedContent
 		params[key] = value
 	}
 	return token.Token{
 		Kind:    kind,
 		Params:  params,
-		Content: content,
+		Content: l.lines[l.currentLine][l.currentIndex:],
 	}
 }
 

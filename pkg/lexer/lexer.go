@@ -37,14 +37,14 @@ func NewFromInput(input []string) Lexer {
 func (l *Lexer) Lex() ([]token.Token, error) {
 	tokens := []token.Token{}
 	for l.currentLine < len(l.lines) {
-		instruction, content := l.getCurrentInstruction()
+		instruction := l.getCurrentInstruction()
 		switch instruction {
 		case token.EOF:
 			break
 		case token.ILLEGAL:
 			return tokens, errors.New(fmt.Sprintf("Illegal instruction encountered (line: %d)", l.currentLine))
 		default:
-			t := buildToken(instruction, content)
+			t := l.buildToken(instruction)
 			tokens = append(tokens, t)
 		}
 		l.currentLine += 1
@@ -53,15 +53,10 @@ func (l *Lexer) Lex() ([]token.Token, error) {
 	return tokens, nil
 }
 
-func (l *Lexer) Reset() {
-	l.currentLine = 0
-	l.currentIndex = 0
-}
-
 // TODO: Migrate to a system of a pointer within the line rather than passing the remaining content around
-func (l *Lexer) getCurrentInstruction() (int, string) {
+func (l *Lexer) getCurrentInstruction() int {
 	if l.currentLine == len(l.lines) {
-		return token.EOF, ""
+		return token.EOF
 	}
 	currentLine := l.lines[l.currentLine]
 	if len(currentLine) == 0 {
@@ -69,13 +64,13 @@ func (l *Lexer) getCurrentInstruction() (int, string) {
 		return l.getCurrentInstruction()
 	}
 	if currentLine[0] == '#' {
-		strippedLine := strings.Trim(currentLine[1:], " ")
-		return token.COMMENT, strippedLine
+		return token.COMMENT
 	}
-	cmd, content := splitFirstWord(currentLine)
+	l.advanceWord()
+	cmd := currentLine[:l.currentIndex]
 	instruction, ok := token.TokenLookupTable[strings.ToUpper(cmd)]
 	if ok {
-		return instruction, content
+		return instruction
 	}
-	return token.ILLEGAL, ""
+	return token.ILLEGAL
 }
