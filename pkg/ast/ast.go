@@ -133,14 +133,26 @@ func (ei *EnvInstructionNode) ToString() string {
 	return fmt.Sprintf("%sENV%s %s %s", colorPurple, colorCyan, strings.Join(mapStrings, ","), colorNone)
 }
 
-// EXPOSE
-type ExposeInstructionNode struct {
+type PortInfo struct {
 	Port  string
 	IsTCP bool // can only be tcp or udp
 }
 
+func (pi *PortInfo) ToString() string {
+	return fmt.Sprintf("Port %s (tcp: %v)", pi.Port, pi.IsTCP)
+}
+
+// EXPOSE
+type ExposeInstructionNode struct {
+	Ports []PortInfo
+}
+
 func (ei *ExposeInstructionNode) ToString() string {
-	return fmt.Sprintf("%sEXPOSE%s %s (tcp: %v) %s", colorPurple, colorCyan, ei.Port, ei.Port, colorNone)
+	portString := ""
+	for _, p := range ei.Ports {
+		portString += fmt.Sprintf(" %s", p.ToString())
+	}
+	return fmt.Sprintf("%sEXPOSE%s Ports: [%s]  %s", colorPurple, colorCyan, portString, colorNone)
 }
 
 // HEALTHCHECK

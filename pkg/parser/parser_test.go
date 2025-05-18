@@ -121,7 +121,7 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 			return fmt.Sprintf("ENV instruction command mismatch: Expected %v Got %v", expected.(*ast.EnvInstructionNode).Pairs, ac.Pairs)
 		}
 	case *ast.ExposeInstructionNode:
-		if *expected.(*ast.ExposeInstructionNode) != *ac {
+		if !reflect.DeepEqual(expected.(*ast.ExposeInstructionNode), ac) {
 			return fmt.Sprintf("EXPOSE instruction mismatch: Expected %v Got %v", expected, ac)
 		}
 	case *ast.HealthcheckInstructionNode:
@@ -359,8 +359,10 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.ExposeInstructionNode{
-				Port:  "3100",
-				IsTCP: false,
+				Ports: []ast.PortInfo{{
+					Port:  "3100",
+					IsTCP: false,
+				}},
 			},
 			},
 		},
@@ -372,8 +374,31 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.ExposeInstructionNode{
-				Port:  "5000",
-				IsTCP: true,
+				Ports: []ast.PortInfo{{
+					Port:  "5000",
+					IsTCP: true,
+				}},
+			},
+			},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.EXPOSE,
+					Content: "5000/tcp 3000/udp",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.ExposeInstructionNode{
+				Ports: []ast.PortInfo{
+					{
+						Port:  "5000",
+						IsTCP: true,
+					},
+					{
+						Port:  "3000",
+						IsTCP: false,
+					},
+				},
 			},
 			},
 		},

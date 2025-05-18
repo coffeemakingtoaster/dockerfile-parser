@@ -181,15 +181,21 @@ func (p Parser) parseEnv(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseExpose(t token.Token) ast.InstructionNode {
-	isTcp := true
-	v := strings.Split(t.Content, "/")
-	// protocol is present
-	if len(v) > 1 {
-		isTcp = v[1] == "tcp"
+	ports := []ast.PortInfo{}
+
+	parts := strings.Split(t.Content, " ")
+	for _, part := range parts {
+		isTcp := true
+		v := strings.Split(part, "/")
+		// protocol is present
+		if len(v) > 1 {
+			isTcp = v[1] == "tcp"
+		}
+		ports = append(ports, ast.PortInfo{Port: v[0], IsTCP: isTcp})
 	}
+
 	return &ast.ExposeInstructionNode{
-		Port:  v[0],
-		IsTCP: isTcp,
+		Ports: ports,
 	}
 }
 
