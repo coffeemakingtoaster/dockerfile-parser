@@ -168,6 +168,10 @@ func (p Parser) parseCmd(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseCopy(t token.Token) ast.InstructionNode {
+	if len(t.MultiLineContent) != 0 {
+		fmt.Print("Heredoc copy statements are not supported as of now")
+		return &ast.CommentInstructionNode{}
+	}
 	paths := parsePossibleArray(t.Content)
 	return &ast.CopyInstructionNode{
 		Source:      paths[0 : len(paths)-1],
@@ -196,6 +200,9 @@ func (p Parser) parseExpose(t token.Token) ast.InstructionNode {
 
 	parts := strings.Split(t.Content, " ")
 	for _, part := range parts {
+		if len(part) == 0 {
+			continue
+		}
 		isTcp := true
 		v := strings.Split(part, "/")
 		// protocol is present
@@ -222,6 +229,7 @@ func (p Parser) parseHealthCheck(t token.Token) ast.InstructionNode {
 		StartPeriod:     util.GetFromParamsWithDefault(t.Params, "start-period", "0s"),
 		StartInterval:   util.GetFromParamsWithDefault(t.Params, "start-interval", "5s"),
 		Retries:         retries,
+		Cmd:             parsePossibleArray(t.Content),
 	}
 }
 
@@ -254,10 +262,18 @@ func (p Parser) parseOnBuild(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseRun(t token.Token) ast.InstructionNode {
-	// For now we skip the shell stuff with eof/...
+	// We do nothing with heredoc except add it directly
+	if len(t.MultiLineContent) != 0 {
+		return &ast.RunInstructionNode{
+			Cmd:       t.MultiLineContent,
+			ShellForm: false,
+			IsHeredoc: true,
+		}
+	}
 	return &ast.RunInstructionNode{
 		Cmd:       parsePossibleArray(t.Content),
 		ShellForm: false,
+		IsHeredoc: false,
 	}
 }
 

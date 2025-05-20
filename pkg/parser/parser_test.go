@@ -153,7 +153,6 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 		}
 	case *ast.OnbuildInstructionNode:
 		if err := compareInstructionNode(expected.(*ast.OnbuildInstructionNode).Trigger, ac.Trigger); err != "" {
-			//return fmt.Sprintf("%v %v", reflect.TypeOf(expected.(*ast.OnbuildInstructionNode).Trigger), reflect.TypeOf(ac.Trigger))
 			return fmt.Sprintf("ONBUILD instruction instruction mismatch: %s", err)
 		}
 	case *ast.StopsignalInstructionNode:
@@ -398,7 +397,7 @@ func TestInstructionParsing(t *testing.T) {
 			Input: []token.Token{
 				{
 					Kind:    token.EXPOSE,
-					Content: "5000/tcp",
+					Content: " 5000/tcp",
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.ExposeInstructionNode{
@@ -438,6 +437,7 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.HealthcheckInstructionNode{
+				Cmd:             []string{"cp", "test1", "test2"},
 				CancelStatement: false,
 				Interval:        "30s",
 				Timeout:         "30s",
@@ -510,6 +510,22 @@ func TestInstructionParsing(t *testing.T) {
 			Expected: []ast.InstructionNode{&ast.RunInstructionNode{
 				Cmd:       []string{"cp", "./a", "./b"},
 				ShellForm: false,
+				IsHeredoc: false,
+			}},
+		},
+		{
+			Input: []token.Token{
+				{
+					Kind:               token.RUN,
+					Content:            "",
+					MultiLineContent:   []string{"EOT bash", "set -ex", "apt-get update", "apt-get install -y vim", "EOT"},
+					HereDocRedirection: false,
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.RunInstructionNode{
+				Cmd:       []string{"EOT bash", "set -ex", "apt-get update", "apt-get install -y vim", "EOT"},
+				ShellForm: false,
+				IsHeredoc: true,
 			}},
 		},
 		{
@@ -597,10 +613,13 @@ func TestInstructionParsing(t *testing.T) {
 		},
 	}
 	for _, c := range testCases {
-		p := parser.NewParser(append([]token.Token{baseImageLine}, c.Input...))
+		p := parser.NewParser(c.Input)
 		instructions := p.Parse().Instructions
+		if len(instructions) != len(c.Expected) {
+			t.Errorf("Instruction count mismatch: Expected %d Got %d", len(c.Expected), len(instructions))
+		}
 		for i := range instructions {
-			err := compareInstructionNode(instructions[i], c.Expected[i])
+			err := compareInstructionNode(c.Expected[i], instructions[i])
 			if err != "" {
 				t.Error(err)
 			}

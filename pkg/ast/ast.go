@@ -210,6 +210,7 @@ func (oi *OnbuildInstructionNode) ToString() string {
 type RunInstructionNode struct {
 	Cmd       []string
 	ShellForm bool // true if shell form, false if exec form
+	IsHeredoc bool // true if heredoc
 }
 
 func (mi *RunInstructionNode) ToString() string {
