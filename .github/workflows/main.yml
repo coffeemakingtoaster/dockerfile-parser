@@ -7,21 +7,8 @@ on:
 
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.24.1' 
-
-      - name: build
-        run: go build main.go
-
   test:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v4
 
@@ -31,4 +18,17 @@ jobs:
 
       - name: test
         run: go test ./...
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1' 
+
+      - name: build cmd
+        run: go build go build cmd/dockerfile-parser/dockerfile-parser.go
 
