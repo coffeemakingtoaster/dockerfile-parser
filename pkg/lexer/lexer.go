@@ -76,7 +76,7 @@ func (l *Lexer) getCurrentInstruction() int {
 	return token.ILLEGAL
 }
 
-// Advance index to end of content and start of comment
+// Advance index to end of conten and start of comment
 // If no comment exist -> advance to end of content
 func (l *Lexer) advanceToStartOfComment() {
 	stack := util.Stack[rune]{}

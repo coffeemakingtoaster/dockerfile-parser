@@ -112,6 +112,11 @@ func (l *Lexer) buildToken(kind int) token.Token {
 		}
 		params[key] = value
 	}
+	if kind == token.RUN || kind == token.COPY {
+		if l.containsHeredoc() {
+			return l.buildHereDocToken(kind, params)
+		}
+	}
 	startIndex := l.currentIndex
 	l.advanceToStartOfComment()
 	return token.Token{
@@ -120,6 +125,68 @@ func (l *Lexer) buildToken(kind int) token.Token {
 		Content:       l.lines[l.currentLine][startIndex:l.currentIndex],
 		InlineComment: l.lines[l.currentLine][l.currentIndex:],
 	}
+}
+
+func (l *Lexer) buildHereDocToken(kind int, params map[string]string) token.Token {
+	// Get identifier and go until end
+	heredocContent := []string{}
+	encounteredRedirection := strings.HasPrefix(l.lines[l.currentLine][l.currentIndex:], "<<-")
+
+	l.currentIndex += 2         // advance <<
+	if encounteredRedirection { //advance -
+		l.currentIndex++
+	}
+
+	heredocContent = append(heredocContent, l.lines[l.currentLine][l.currentIndex:])
+	heredocStartIndex := l.currentIndex
+	hasSeenCharacter := false
+	// Parse delim
+	for l.currentIndex < len(l.lines[l.currentLine]) {
+		if l.expectCurrentCharacter(' ') {
+			if hasSeenCharacter {
+				break
+			}
+			l.currentIndex++
+			heredocStartIndex++
+			continue
+		}
+		hasSeenCharacter = true
+		l.currentIndex++
+	}
+	delim := l.lines[l.currentLine][heredocStartIndex:l.currentIndex]
+	delim = strings.ReplaceAll(strings.ReplaceAll(delim, "'", ""), "\"", "") // Delim definition may contain quotes...this is the easiest way to handle them for now
+
+	l.currentLine++
+
+	for l.currentLine < len(l.lines) {
+		heredocContent = append(heredocContent, l.lines[l.currentLine])
+		if strings.HasPrefix(l.lines[l.currentLine], delim) {
+			break
+		}
+		l.currentLine++
+	}
+
+	return token.Token{
+		Kind:               kind,
+		Params:             params,
+		MultiLineContent:   heredocContent,
+		HereDocRedirection: encounteredRedirection,
+	}
+}
+
+func (l *Lexer) containsHeredoc() bool {
+	startIndex := l.currentIndex
+	for l.currentIndex < len(l.lines[l.currentLine]) {
+		if l.expectCurrentCharacter('<') && l.expectNextCharacter('<') {
+			return true
+		}
+		if !l.expectCurrentCharacter(' ') {
+			break
+		}
+		l.currentIndex++
+	}
+	l.currentIndex = startIndex
+	return false
 }
 
 func mergeLines(input []string) []string {

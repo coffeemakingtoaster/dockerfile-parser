@@ -2,6 +2,7 @@ package lexer_test
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	testdata "github.com/coffeemakingtoaster/dockerfile-parser/internal/pkg/test_data"
@@ -35,6 +36,15 @@ func compareTokens(expected, actual token.Token) string {
 	if expected.InlineComment != actual.InlineComment {
 		return fmt.Sprintf("Token comment mismatch: Expected %s Got %s", expected.InlineComment, actual.InlineComment)
 	}
+
+	if expected.HereDocRedirection != actual.HereDocRedirection {
+		return fmt.Sprintf("Token heredoc redirection mismatch: Expected %v Got %v", expected.HereDocRedirection, actual.HereDocRedirection)
+	}
+
+	if !reflect.DeepEqual(expected.MultiLineContent, actual.MultiLineContent) {
+		return fmt.Sprintf("Token multiline content mismatch: Expected %v Got %v", expected.MultiLineContent, actual.MultiLineContent)
+	}
+
 	return ""
 }
 
@@ -159,6 +169,32 @@ func TestInstructionParse(t *testing.T) {
 					Content:       "echo a # test",
 					InlineComment: "another test",
 				},
+			},
+		},
+		{
+			Input: []string{"RUN <<EOT bash",
+				"set -ex",
+				"apt-get update",
+				"apt-get install -y vim",
+				"EOT"},
+			ExpectedOutput: []token.Token{{
+				Kind:               token.RUN,
+				Params:             map[string]string{},
+				Content:            "",
+				MultiLineContent:   []string{"EOT bash", "set -ex", "apt-get update", "apt-get install -y vim", "EOT"},
+				HereDocRedirection: false,
+			},
+			},
+		},
+		{
+			Input: []string{"COPY --from=build <<- 'EOF' greeting.txt", "hello world", "EOF"},
+			ExpectedOutput: []token.Token{{
+				Kind:               token.COPY,
+				Params:             map[string]string{"from": "build"},
+				Content:            "",
+				MultiLineContent:   []string{" 'EOF' greeting.txt", "hello world", "EOF"},
+				HereDocRedirection: true,
+			},
 			},
 		},
 	}
