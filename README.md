@@ -13,9 +13,9 @@ Note: This is more of a PoC than a production ready parser
 - [x] Dockerfiles not starting with FROM (apparently they can start with ARG)
 - [x] Comments (inline do not get detected)
 - [x] Arg behaviour parsing when not actively setting a value
+- [x] Parser directives -> Are recognized and parsed into the ast...but as of now I dont actually do anything with them
 - [ ] Support for dockerfiles with EOF blocks  (this is probably the worst offender with this: https://github.com/apache/airflow/blob/main/Dockerfile)
 - [ ] Several edge cases and special scenarios for a few instructions
-- [ ] Parser directives
 - [ ] Bash like variabe magic
 
 ## Benchmarking

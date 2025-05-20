@@ -246,12 +246,7 @@ func (p Parser) parseOnBuild(t token.Token) ast.InstructionNode {
 			Trigger: &ast.UnknownInstructionNode{Text: t.Content},
 		}
 	}
-	tmpP := NewParser(
-		append(
-			[]token.Token{{
-				Kind:    token.FROM,
-				Content: "placeholder:placeholder"},
-			}, tokens...))
+	tmpP := NewParser(tokens)
 	parsed := tmpP.Parse().Instructions[0]
 	return &ast.OnbuildInstructionNode{
 		Trigger: parsed,

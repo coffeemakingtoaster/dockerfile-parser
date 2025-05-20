@@ -479,25 +479,27 @@ func TestInstructionParsing(t *testing.T) {
 				Name: "Peter Lustig",
 			}},
 		},
-		/*
-						This leads to weird problems with any ast node that contains variable sized fields (strings, arrays,...)
-			TODO: Investigate further
-
-									{
-										Input: []token.Token{
-											{
-												Kind:    token.ONBUILD,
-												Content: "HEALTHCHECK NONE",
-											},
-										},
-										Expected: []ast.InstructionNode{&ast.OnbuildInstructionNode{
-											// Every struct placed here that contains a variable sized type seems to not be read properly
-											Trigger: &ast.HealthcheckInstructionNode{
-												CancelStatement: true,
-											},
-										}},
-									},
-		*/
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.ONBUILD,
+					Content: "EXPOSE 5000/tcp 3000/udp",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.OnbuildInstructionNode{
+				Trigger: &ast.ExposeInstructionNode{
+					Ports: []ast.PortInfo{
+						{
+							Port:  "5000",
+							IsTCP: true,
+						},
+						{
+							Port:  "3000",
+							IsTCP: false,
+						},
+					},
+				}}},
+		},
 		{
 			Input: []token.Token{
 				{
