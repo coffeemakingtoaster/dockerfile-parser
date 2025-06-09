@@ -3,7 +3,6 @@ package testdata
 // Taken from therecipe/qt
 var SampleDockerfile = []string{
 	"FROM therecipe/qt:wine_base as base",
-	"#TODO: use pacman instead",
 	"RUN apt-get -qq update && apt-get --no-install-recommends -qq -y install p7zip",
 	"RUN GCC=x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z && cd $HOME/.wine/drive_c && curl -sL --retry 10 --retry-delay 60 -O https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-posix/seh/$GCC && p7zip -d $GCC && rm -f $GCC",
 	"",

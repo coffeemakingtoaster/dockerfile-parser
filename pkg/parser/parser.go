@@ -56,6 +56,7 @@ func (p *Parser) Parse() *ast.StageNode {
 		case token.COPY:
 			node := p.parseCopy(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
+			// TODO: Does this make sense? This breaks the idea of a tree, no?
 			if node.(*ast.CopyInstructionNode).From != "" {
 				// Check if from actually is a stage -> can also be image
 				if val, ok := namedStageLookup[node.(*ast.CopyInstructionNode).From]; ok {
