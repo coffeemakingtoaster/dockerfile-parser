@@ -3,6 +3,7 @@ package ast
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 )
 
@@ -50,15 +51,30 @@ func (*UnknownInstructionNode) InstructionNode() {}
 // Stagenode defines the current stage for the instructions
 type StageNode struct {
 	Node
-	Identifier string
-	Subsequent []*StageNode
+	Identifier      string
+	Subsequent      *StageNode
+	ReferencedByIds []string
 	// This could be a tree in of itself...but docker Instructions dont really have a lot of logic so that may be overkill
 	Instructions   []InstructionNode
 	Image          string
 	ParserMetadata map[string]string
+	Name           string
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+func GenerateStageNodeID() string {
+	b := make([]rune, 64)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
 
 func (sn *StageNode) ToString() string {
+	if sn.Name != "" {
+		return fmt.Sprintf("%sStage%s: %s - %s (%s)", colorGreen, colorNone, sn.Identifier, sn.Name, sn.Image)
+	}
 	return fmt.Sprintf("%sStage%s: %s (%s)", colorGreen, colorNone, sn.Identifier, sn.Image)
 }
 

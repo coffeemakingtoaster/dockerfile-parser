@@ -12,10 +12,6 @@ func DisplayAst(root *ast.StageNode) {
 		for _, instruction := range root.Instructions {
 			fmt.Println(fmt.Sprintf(" > %s", instruction.ToString()))
 		}
-		if len(root.Subsequent) > 0 {
-			root = root.Subsequent[0]
-		} else {
-			root = nil
-		}
+		root = root.Subsequent
 	}
 }

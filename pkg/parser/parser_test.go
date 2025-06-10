@@ -32,19 +32,29 @@ func compareStageNodes(expected, actual ast.StageNode) string {
 		return fmt.Sprintf("Stage image mismatch: Expected %s Got %s", expected.Image, actual.Image)
 	}
 
-	if actual.Identifier != expected.Identifier {
-		return fmt.Sprintf("Stage identifier mismatch: Expected %s Got %s", expected.Identifier, actual.Identifier)
+	if actual.Name != expected.Name {
+		return fmt.Sprintf("Stage name mismatch: Expected %s Got %s", expected.Name, actual.Name)
 	}
 
-	if len(actual.Subsequent) != len(expected.Subsequent) {
-		return fmt.Sprintf("Stage subsequent length mismatch: Expected %d Got %d", len(expected.Subsequent), len(actual.Subsequent))
+	if actual.Identifier != fmt.Sprintf("%s-identifier", actual.Name) {
+		return fmt.Sprintf("Stage identifier mismatch: Expected %s (%s) Got %s (%s)", fmt.Sprintf("%s-identifier", actual.Name), expected.Name, actual.Identifier, expected.Name)
 	}
 
-	for i := range expected.Subsequent {
-		if err := compareStageNodes(*expected.Subsequent[i], *actual.Subsequent[i]); err != "" {
-			return err
+	if expected.Subsequent == nil || actual.Subsequent == nil {
+		if expected.Subsequent != actual.Subsequent {
+			return fmt.Sprintf("Subsequent mismatch: Expected %v Got %v", expected.Subsequent, actual.Subsequent)
+		}
+
+	} else {
+		if err := compareStageNodes(*expected.Subsequent, *actual.Subsequent); err != "" {
+			return fmt.Sprintf("Nested mismatch: %s", err)
 		}
 	}
+
+	if !reflect.DeepEqual(actual.ReferencedByIds, expected.ReferencedByIds) {
+		return fmt.Sprintf("Stage reference ids mismatch: Expected %v Got %v", expected.ReferencedByIds, actual.ReferencedByIds)
+	}
+
 	if !reflect.DeepEqual(expected.ParserMetadata, actual.ParserMetadata) {
 		return fmt.Sprintf("Stage parser metadata mismatch: Expected %v Got %v", expected.ParserMetadata, actual.ParserMetadata)
 	}
@@ -187,7 +197,8 @@ func TestFromParsing(t *testing.T) {
 				},
 			},
 			Expected: &ast.StageNode{
-				Identifier:     "anon",
+				Name:           "",
+				Identifier:     "-identifier",
 				Image:          "alpine:latest",
 				ParserMetadata: make(map[string]string),
 			},
@@ -200,7 +211,8 @@ func TestFromParsing(t *testing.T) {
 				},
 			},
 			Expected: &ast.StageNode{
-				Identifier:     "base",
+				Name:           "base",
+				Identifier:     "padding-identifier",
 				Image:          "alpine:latest",
 				ParserMetadata: make(map[string]string),
 			},
@@ -235,37 +247,34 @@ func TestFromParsing(t *testing.T) {
 				},
 			},
 			Expected: &ast.StageNode{
-				Identifier:     "base",
+				Name:           "base",
 				Image:          "alpine:latest",
 				ParserMetadata: map[string]string{"syntax": "docker/dockerfile:1"},
-				Subsequent: []*ast.StageNode{
-					{
-						Identifier: "padding",
-						Image:      "alpine:padding",
-						Subsequent: []*ast.StageNode{
-							{
-								Identifier:     "next",
-								Image:          "alpine:next",
-								Subsequent:     []*ast.StageNode{},
-								ParserMetadata: make(map[string]string),
-							},
-						},
-						ParserMetadata: make(map[string]string),
-					},
-					{
-						Identifier:     "next",
+				Subsequent: &ast.StageNode{
+					Name:  "padding",
+					Image: "alpine:padding",
+					Subsequent: &ast.StageNode{
+						Name:           "next",
 						Image:          "alpine:next",
-						Subsequent:     []*ast.StageNode{},
+						Subsequent:     nil,
 						ParserMetadata: make(map[string]string),
 					},
+					ParserMetadata: make(map[string]string),
 				},
 			},
 		},
 	}
 	for _, c := range testCases {
 		p := parser.NewParser(c.Input)
+		actual := p.Parse()
+		curr := actual.Subsequent
+		// overwrite generated ids with predictable ids
+		for curr != nil {
+			curr.Identifier = fmt.Sprintf("%s-identifier", curr.Name)
+			curr = curr.Subsequent
+		}
 		// Pass first in because there is no need to compare the rootnode
-		err := compareStageNodes(*c.Expected, *p.Parse().Subsequent[0])
+		err := compareStageNodes(*c.Expected, *actual.Subsequent)
 		if err != "" {
 			t.Error(err)
 		}

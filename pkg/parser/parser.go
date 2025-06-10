@@ -23,7 +23,7 @@ type Parser struct {
 
 // Create new parser
 func NewParser(tokens []token.Token) Parser {
-	return Parser{tokens: tokens, currentTokenIndex: 0, rootNode: &ast.StageNode{Identifier: "root", ParserMetadata: make(map[string]string)}}
+	return Parser{tokens: tokens, currentTokenIndex: 0, rootNode: &ast.StageNode{Identifier: ast.GenerateStageNodeID(), ParserMetadata: make(map[string]string)}}
 }
 
 // Parse the token provided during init
@@ -39,8 +39,8 @@ func (p *Parser) Parse() *ast.StageNode {
 		switch t.Kind {
 		case token.FROM:
 			node := p.parseFrom(t)
-			localRoot.Subsequent = append(localRoot.Subsequent, node)
-			if node.Identifier != "anon" {
+			localRoot.Subsequent = node
+			if node.Name != "" {
 				namedStageLookup[node.Identifier] = node
 			}
 			localRoot = node
@@ -56,12 +56,11 @@ func (p *Parser) Parse() *ast.StageNode {
 		case token.COPY:
 			node := p.parseCopy(t)
 			localRoot.Instructions = append(localRoot.Instructions, node)
-			// TODO: Does this make sense? This breaks the idea of a tree, no?
 			if node.(*ast.CopyInstructionNode).From != "" {
 				// Check if from actually is a stage -> can also be image
 				if val, ok := namedStageLookup[node.(*ast.CopyInstructionNode).From]; ok {
-					if !slices.Contains(val.Subsequent, localRoot) {
-						val.Subsequent = append(val.Subsequent, localRoot)
+					if !slices.Contains(val.ReferencedByIds, localRoot.Identifier) {
+						val.ReferencedByIds = append(val.ReferencedByIds, localRoot.Identifier)
 					}
 				}
 			}
@@ -121,7 +120,7 @@ func (p *Parser) Parse() *ast.StageNode {
 func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 	if !(strings.Contains(t.Content, " AS ") || strings.Contains(t.Content, " as ")) {
 		return &ast.StageNode{
-			Identifier:     "anon",
+			Identifier:     ast.GenerateStageNodeID(),
 			Image:          t.Content,
 			ParserMetadata: make(map[string]string),
 		}
@@ -129,9 +128,10 @@ func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 	content := parsePossibleArray(t.Content)
 	image := content[0]
 	// as := content[1]
-	identifier := strings.Join(content[2:], " ")
+	name := strings.Join(content[2:], " ")
 	return &ast.StageNode{
-		Identifier:     identifier,
+		Identifier:     ast.GenerateStageNodeID(),
+		Name:           name,
 		Image:          image,
 		ParserMetadata: make(map[string]string),
 	}
