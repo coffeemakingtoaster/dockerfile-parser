@@ -212,7 +212,7 @@ func TestFromParsing(t *testing.T) {
 			},
 			Expected: &ast.StageNode{
 				Name:           "base",
-				Identifier:     "padding-identifier",
+				Identifier:     "base-identifier",
 				Image:          "alpine:latest",
 				ParserMetadata: make(map[string]string),
 			},
@@ -249,12 +249,17 @@ func TestFromParsing(t *testing.T) {
 			Expected: &ast.StageNode{
 				Name:           "base",
 				Image:          "alpine:latest",
+				Identifier:     "base-identifier",
 				ParserMetadata: map[string]string{"syntax": "docker/dockerfile:1"},
 				Subsequent: &ast.StageNode{
-					Name:  "padding",
-					Image: "alpine:padding",
+					Name:       "padding",
+					Image:      "alpine:padding",
+					Identifier: "padding-identifier",
+
 					Subsequent: &ast.StageNode{
-						Name:           "next",
+						Name:       "next",
+						Identifier: "next-identifier",
+
 						Image:          "alpine:next",
 						Subsequent:     nil,
 						ParserMetadata: make(map[string]string),
