@@ -18,6 +18,7 @@ const colorNone = "\033[0m"
 type Node interface {
 	ToString() string
 	Instruction() string
+	Reconstruct() []string
 }
 
 // An InstructionNode is everything that does not define a stage
@@ -280,7 +281,7 @@ func (si *StopsignalInstructionNode) ToString() string {
 	return fmt.Sprintf("%sSTOP%s %s %s", colorPurple, colorCyan, si.Signal, colorNone)
 }
 
-func (si *StopsignalInstructionNode) Instruction() string { return "STOP" }
+func (si *StopsignalInstructionNode) Instruction() string { return "STOPSIGNAL" }
 
 // USER
 type UserInstructionNode struct {
