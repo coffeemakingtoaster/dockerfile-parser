@@ -47,7 +47,7 @@ func (ai *AddInstructionNode) Reconstruct() []string {
 	reconstructed += formatIfValue("--chown=%s ", ai.Chown)
 	reconstructed += formatIfValue("--chmod=%s ", ai.Chmod)
 	reconstructed += formatIfValue("--link=%s ", strconv.FormatBool(ai.Link))
-	reconstructed += formatIfValue("--exlcude=%s ", ai.Exclude)
+	reconstructed += formatIfValue("--exclude=%s ", ai.Exclude)
 	reconstructed += fmt.Sprintf("%s ", strings.Join(ai.Source, " "))
 	reconstructed += fmt.Sprintf("%s", ai.Destination)
 	return []string{reconstructed}
