@@ -129,7 +129,7 @@ func (oi *OnbuildInstructionNode) Reconstruct() []string {
 func (ri *RunInstructionNode) Reconstruct() []string {
 	reconstructed := fmt.Sprintf("%s ", ri.Instruction())
 	if !ri.ShellForm && !ri.IsHeredoc {
-		return []string{reconstructed + escapeSlice(strings.Split(ri.Cmd[0], " "))}
+		return []string{reconstructed + escapeSlice(ri.Cmd)}
 	}
 	if ri.IsHeredoc {
 		reconstructed += "<< "

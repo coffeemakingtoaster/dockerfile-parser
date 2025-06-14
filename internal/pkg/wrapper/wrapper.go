@@ -7,21 +7,22 @@ import (
 	"strings"
 
 	"github.com/coffeemakingtoaster/dockerfile-parser/internal/pkg/display"
+	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/ast"
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/lexer"
 	"github.com/coffeemakingtoaster/dockerfile-parser/pkg/parser"
 )
 
-func ParsePath(path string, recursive bool) int {
+func ParsePath(path string, recursive, output bool) int {
 	isFile, err := isFile(path)
 	if err != nil {
 		panic(err)
 	}
 	if isFile {
-		parseAndDisplayFileList([]string{path})
+		parseAndDisplayFileList([]string{path}, output)
 		return 1
 	} else {
 		paths := buildDirPathList(path, recursive)
-		parseAndDisplayFileList(paths)
+		parseAndDisplayFileList(paths, output)
 		return len(paths)
 	}
 }
@@ -66,7 +67,7 @@ func isFile(path string) (bool, error) {
 	}
 }
 
-func parseAndDisplayFileList(paths []string) {
+func parseAndDisplayFileList(paths []string, output bool) {
 	for _, path := range paths {
 		fmt.Printf("---\t%s\t---\n", path)
 		l, err := lexer.NewFromFile(path)
@@ -85,5 +86,18 @@ func parseAndDisplayFileList(paths []string) {
 			continue
 		}
 		display.DisplayAst(root)
+		if output {
+			outputReconstructed(root, filepath.Base(path))
+		}
+	}
+}
+
+func outputReconstructed(root *ast.StageNode, filename string) {
+	os.MkdirAll("./out", 0755)
+	content := root.Reconstruct()
+	data := strings.Join(content, "\n")
+	err := os.WriteFile(filepath.Join("./out", filename), []byte(data), 0755)
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err.Error())
 	}
 }

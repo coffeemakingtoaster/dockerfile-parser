@@ -218,7 +218,7 @@ func TestReconstructInstruction(t *testing.T) {
 			Input: ast.StageNode{
 				Instructions: []ast.InstructionNode{
 					&ast.RunInstructionNode{
-						Cmd:       []string{"curl google.com"},
+						Cmd:       []string{"curl", "google.com"},
 						ShellForm: false,
 					},
 				},
