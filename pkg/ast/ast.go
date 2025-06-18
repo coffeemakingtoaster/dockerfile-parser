@@ -46,6 +46,7 @@ func (*UserInstructionNode) InstructionNode()        {}
 func (*VolumeInstructionNode) InstructionNode()      {}
 func (*WorkdirInstructionNode) InstructionNode()     {}
 func (*CommentInstructionNode) InstructionNode()     {}
+func (*EmptyLineNode) InstructionNode()              {}
 
 // For the edge case that instruction supplied to ONBUILD cannot be parsed
 func (*UnknownInstructionNode) InstructionNode() {}
@@ -337,3 +338,8 @@ func (ci *CommentInstructionNode) ToString() string {
 }
 
 func (ei *CommentInstructionNode) Instruction() string { return "COMMENT" }
+
+type EmptyLineNode struct{}
+
+func (*EmptyLineNode) ToString() string    { return fmt.Sprintf("%sEMPTY%s", colorPurple, colorNone) }
+func (*EmptyLineNode) Instruction() string { return "EMPTY LINE" }

@@ -170,3 +170,7 @@ func (ci *CommentInstructionNode) Reconstruct() []string {
 func (ui *UnknownInstructionNode) Reconstruct() []string {
 	return []string{ui.Text}
 }
+
+func (*EmptyLineNode) Reconstruct() []string {
+	return []string{""}
+}

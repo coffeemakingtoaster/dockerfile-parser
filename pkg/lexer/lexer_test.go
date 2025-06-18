@@ -197,6 +197,13 @@ func TestInstructionParse(t *testing.T) {
 			},
 			},
 		},
+		{
+			Input: []string{""},
+			ExpectedOutput: []token.Token{{
+				Kind: token.EMPTY_LINE,
+			},
+			},
+		},
 	}
 	for _, v := range testCases {
 		l := lexer.NewFromInput(v.Input)

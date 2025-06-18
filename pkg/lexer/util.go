@@ -195,9 +195,6 @@ func mergeLines(input []string) []string {
 
 	for i := range input {
 		in := strings.TrimSpace(input[i])
-		if strings.HasPrefix(in, "#") {
-			continue
-		}
 		buffer = buffer + in
 		if strings.HasSuffix(in, "\\") {
 			buffer = strings.TrimSuffix(buffer, "\\")
