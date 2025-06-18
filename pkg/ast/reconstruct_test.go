@@ -306,6 +306,24 @@ func TestReconstructInstruction(t *testing.T) {
 			},
 			Expected: []string{"CUSTOM --flag command"},
 		},
+		{
+			Input: ast.StageNode{
+				Instructions: []ast.InstructionNode{
+					&ast.OnbuildInstructionNode{
+						Trigger: &ast.MaintainerInstructionNode{
+							Name: "R2D2",
+						},
+					},
+					&ast.EmptyLineNode{},
+					&ast.OnbuildInstructionNode{
+						Trigger: &ast.MaintainerInstructionNode{
+							Name: "R2D2",
+						},
+					},
+				},
+			},
+			Expected: []string{"ONBUILD MAINTAINER R2D2", "", "ONBUILD MAINTAINER R2D2"},
+		},
 	}
 	for _, testCase := range expected {
 		actual := []string{}

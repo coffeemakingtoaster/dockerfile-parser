@@ -109,6 +109,9 @@ func (p *Parser) Parse() *ast.StageNode {
 		case token.COMMENT:
 			node := &ast.CommentInstructionNode{Text: t.Content}
 			localRoot.Instructions = append(localRoot.Instructions, node)
+		case token.EMPTY_LINE:
+			node := &ast.EmptyLineNode{}
+			localRoot.Instructions = append(localRoot.Instructions, node)
 		default:
 			fmt.Printf("Not implemented kind %d", t.Kind)
 		}

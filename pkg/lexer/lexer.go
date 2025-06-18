@@ -61,10 +61,10 @@ func (l *Lexer) getCurrentInstruction() int {
 	}
 	currentLine := l.lines[l.currentLine]
 	if len(currentLine) == 0 {
-		l.currentLine += 1
-		return l.getCurrentInstruction()
+		return token.EMPTY_LINE
 	}
 	if currentLine[0] == '#' {
+		l.currentIndex++
 		return token.COMMENT
 	}
 	l.advanceWord()
@@ -76,7 +76,7 @@ func (l *Lexer) getCurrentInstruction() int {
 	return token.ILLEGAL
 }
 
-// Advance index to end of conten and start of comment
+// Advance index to end of content and start of comment
 // If no comment exist -> advance to end of content
 func (l *Lexer) advanceToStartOfComment() {
 	stack := util.Stack[rune]{}

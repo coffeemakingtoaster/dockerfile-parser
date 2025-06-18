@@ -24,6 +24,8 @@ const (
 	WORKDIR          //Change working directory.
 	COMMENT          //Comment line
 	PARSER_DIRECTIVE //Comment line with parser directive data
+
+	EMPTY_LINE //Empty line, kept to retain them when reconstructing
 )
 
 var TokenLookupTable = map[string]int{
