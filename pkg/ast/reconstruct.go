@@ -82,7 +82,7 @@ func (ei *EnvInstructionNode) Reconstruct() []string {
 	reconstructed := fmt.Sprintf("%s", ei.Instruction())
 	keys := make([]string, len(ei.Pairs))
 	index := 0
-	for k, _ := range ei.Pairs {
+	for k := range ei.Pairs {
 		keys[index] = k
 		index++
 	}
