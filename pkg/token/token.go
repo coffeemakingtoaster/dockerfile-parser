@@ -53,7 +53,7 @@ var TokenLookupTable = map[string]int{
 
 type Token struct {
 	Kind               int
-	Params             map[string]string
+	Params             map[string][]string
 	Content            string
 	InlineComment      string
 	MultiLineContent   []string //This can only contain content for instructions that support heredoc (which should be COPY and RUN)

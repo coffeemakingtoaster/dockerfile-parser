@@ -22,7 +22,7 @@ func compareTokens(expected, actual token.Token) string {
 
 	if len(expected.Params) == len(actual.Params) {
 		for k, v := range expected.Params {
-			if v != actual.Params[k] {
+			if !reflect.DeepEqual(v, actual.Params[k]) {
 				return fmt.Sprintf("Token param value mismatch for key %s: Expected %s Got %s", k, v, actual.Params[k])
 			}
 		}
@@ -55,7 +55,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:    token.FROM,
-					Params:  make(map[string]string),
+					Params:  make(map[string][]string),
 					Content: "test:latest",
 				},
 			},
@@ -65,20 +65,20 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind: token.COPY,
-					Params: map[string]string{
-						"from": "build",
+					Params: map[string][]string{
+						"from": {"build"},
 					},
 					Content: "test:latest",
 				},
 			},
 		},
 		{
-			Input: []string{"RUN --mount=type=bind,target=. go build -o /myapp ./cmd"},
+			Input: []string{"RUN --mount=type=bind,target=. --mount=type=bind,target=.. go build -o /myapp ./cmd"},
 			ExpectedOutput: []token.Token{
 				{
 					Kind: token.RUN,
-					Params: map[string]string{
-						"mount": "type=bind,target=.",
+					Params: map[string][]string{
+						"mount": {"type=bind,target=.", "type=bind,target=.."},
 					},
 					Content: "go build -o /myapp ./cmd",
 				},
@@ -88,9 +88,9 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind: token.COPY,
-					Params: map[string]string{
-						"link": "true",
-						"from": "build",
+					Params: map[string][]string{
+						"link": {"true"},
+						"from": {"build"},
 					},
 					Content: "/foo /bar",
 				},
@@ -101,8 +101,8 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind: token.RUN,
-					Params: map[string]string{
-						"test": "test",
+					Params: map[string][]string{
+						"test": {"test"},
 					},
 					Content: "command --commandflag=notmeantfordocker",
 				},
@@ -113,7 +113,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:    token.CMD,
-					Params:  map[string]string{},
+					Params:  map[string][]string{},
 					Content: "",
 				},
 			},
@@ -123,7 +123,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:    token.COMMENT,
-					Params:  map[string]string{},
+					Params:  map[string][]string{},
 					Content: "test",
 				},
 			},
@@ -133,7 +133,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:    token.COMMENT,
-					Params:  map[string]string{},
+					Params:  map[string][]string{},
 					Content: "test",
 				},
 			},
@@ -143,7 +143,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:          token.RUN,
-					Params:        map[string]string{},
+					Params:        map[string][]string{},
 					Content:       "echo a",
 					InlineComment: " test",
 				},
@@ -154,7 +154,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:          token.RUN,
-					Params:        map[string]string{},
+					Params:        map[string][]string{},
 					Content:       "echo a #test",
 					InlineComment: "",
 				},
@@ -165,7 +165,7 @@ func TestInstructionParse(t *testing.T) {
 			ExpectedOutput: []token.Token{
 				{
 					Kind:          token.RUN,
-					Params:        map[string]string{},
+					Params:        map[string][]string{},
 					Content:       "echo a # test",
 					InlineComment: "another test",
 				},
@@ -179,7 +179,7 @@ func TestInstructionParse(t *testing.T) {
 				"EOT"},
 			ExpectedOutput: []token.Token{{
 				Kind:               token.RUN,
-				Params:             map[string]string{},
+				Params:             map[string][]string{},
 				Content:            "",
 				MultiLineContent:   []string{"EOT bash", "set -ex", "apt-get update", "apt-get install -y vim", "EOT"},
 				HereDocRedirection: false,
@@ -190,7 +190,7 @@ func TestInstructionParse(t *testing.T) {
 			Input: []string{"COPY --from=build <<- 'EOF' greeting.txt", "hello world", "EOF"},
 			ExpectedOutput: []token.Token{{
 				Kind:               token.COPY,
-				Params:             map[string]string{"from": "build"},
+				Params:             map[string][]string{"from": {"build"}},
 				Content:            "",
 				MultiLineContent:   []string{" 'EOF' greeting.txt", "hello world", "EOF"},
 				HereDocRedirection: true,

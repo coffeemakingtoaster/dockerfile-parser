@@ -237,12 +237,12 @@ func TestFromParsing(t *testing.T) {
 				},
 				{
 					Kind:    token.COPY,
-					Params:  map[string]string{"from": "base"},
+					Params:  map[string][]string{"from": {"base"}},
 					Content: "./source1 ./source2 ../../dest",
 				},
 				{
 					Kind:    token.COPY,
-					Params:  map[string]string{"from": "base"},
+					Params:  map[string][]string{"from": {"base"}},
 					Content: "./source1 ./source2 ../../dest",
 				},
 			},
@@ -525,8 +525,36 @@ func TestInstructionParsing(t *testing.T) {
 				Cmd:       []string{"cp", "./a", "./b"},
 				ShellForm: false,
 				IsHeredoc: false,
+				Mount:     []string{},
+				Network:   "",
+				Security:  "",
+				Device:    "",
 			}},
 		},
+		{
+			Input: []token.Token{
+				{
+					Kind:    token.RUN,
+					Content: "cp ./a ./b",
+					Params: map[string][]string{
+						"security": {"sandbox"},
+						"device":   {"gpu"},
+						"mount":    {"test1", "test2"},
+						"network":  {"nono"},
+					},
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.RunInstructionNode{
+				Cmd:       []string{"cp", "./a", "./b"},
+				ShellForm: false,
+				IsHeredoc: false,
+				Mount:     []string{"test1", "test2"},
+				Network:   "nono",
+				Security:  "sandbox",
+				Device:    "gpu",
+			}},
+		},
+
 		{
 			Input: []token.Token{
 				{
@@ -540,6 +568,10 @@ func TestInstructionParsing(t *testing.T) {
 				Cmd:       []string{"EOT bash", "set -ex", "apt-get update", "apt-get install -y vim", "EOT"},
 				ShellForm: false,
 				IsHeredoc: true,
+				Mount:     []string{},
+				Network:   "",
+				Security:  "",
+				Device:    "",
 			}},
 		},
 		{

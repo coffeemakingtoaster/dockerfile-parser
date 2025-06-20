@@ -254,6 +254,10 @@ type RunInstructionNode struct {
 	Cmd       []string
 	ShellForm bool // true if shell form, false if exec form
 	IsHeredoc bool // true if heredoc
+	Device    string
+	Mount     []string
+	Network   string
+	Security  string
 }
 
 func (ri *RunInstructionNode) ToString() string {
