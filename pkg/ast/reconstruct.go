@@ -3,6 +3,7 @@ package ast
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -79,8 +80,15 @@ func (ei *EntrypointInstructionNode) Reconstruct() []string {
 }
 func (ei *EnvInstructionNode) Reconstruct() []string {
 	reconstructed := fmt.Sprintf("%s", ei.Instruction())
-	for k, v := range ei.Pairs {
-		reconstructed += fmt.Sprintf(" %s=%s", k, v)
+	keys := make([]string, len(ei.Pairs))
+	index := 0
+	for k, _ := range ei.Pairs {
+		keys[index] = k
+		index++
+	}
+	slices.Sort(keys)
+	for _, k := range keys {
+		reconstructed += fmt.Sprintf(" %s=%s", k, ei.Pairs[k])
 	}
 	return []string{reconstructed}
 }

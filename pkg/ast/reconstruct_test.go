@@ -103,8 +103,8 @@ func TestReconstructInstruction(t *testing.T) {
 				Instructions: []ast.InstructionNode{
 					&ast.EnvInstructionNode{
 						Pairs: map[string]string{
-							"abc": "def",
 							"xy":  "z",
+							"abc": "def",
 						},
 					},
 				},
