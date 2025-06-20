@@ -145,12 +145,12 @@ func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 	return &ast.AddInstructionNode{
 		Source:      paths[0 : len(paths)-1],
 		Destination: paths[len(paths)-1],
-		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
-		CheckSum:    util.GetFromParamsWithDefault(t.Params, "checksum", ""),
-		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", ""),
-		Chmod:       util.GetFromParamsWithDefault(t.Params, "chmod", ""),
-		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
-		Exclude:     util.GetFromParamsWithDefault(t.Params, "exclude", ""),
+		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", []string{"false"})[0] == "true",
+		CheckSum:    util.GetFromParamsWithDefault(t.Params, "checksum", []string{""})[0],
+		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", []string{""})[0],
+		Chmod:       util.GetFromParamsWithDefault(t.Params, "chmod", []string{""})[0],
+		Link:        util.GetFromParamsWithDefault(t.Params, "link", []string{"false"})[0] == "true",
+		Exclude:     util.GetFromParamsWithDefault(t.Params, "exclude", []string{""})[0],
 	}
 }
 
@@ -180,10 +180,10 @@ func (p Parser) parseCopy(t token.Token) ast.InstructionNode {
 	return &ast.CopyInstructionNode{
 		Source:      paths[0 : len(paths)-1],
 		Destination: paths[len(paths)-1],
-		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", "false") == "true",
-		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", ""),
-		Link:        util.GetFromParamsWithDefault(t.Params, "link", "false") == "true",
-		From:        util.GetFromParamsWithDefault(t.Params, "from", ""),
+		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", []string{"false"})[0] == "true",
+		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", []string{""})[0],
+		Link:        util.GetFromParamsWithDefault(t.Params, "link", []string{"false"})[0] == "true",
+		From:        util.GetFromParamsWithDefault(t.Params, "from", []string{""})[0],
 	}
 }
 
@@ -225,13 +225,13 @@ func (p Parser) parseHealthCheck(t token.Token) ast.InstructionNode {
 	if t.Content == "NONE" {
 		return &ast.HealthcheckInstructionNode{CancelStatement: true}
 	}
-	retries, _ := strconv.Atoi(util.GetFromParamsWithDefault(t.Params, "retries", "3"))
+	retries, _ := strconv.Atoi(util.GetFromParamsWithDefault(t.Params, "retries", []string{"3"})[0])
 	return &ast.HealthcheckInstructionNode{
 		CancelStatement: false,
-		Interval:        util.GetFromParamsWithDefault(t.Params, "interval", "30s"),
-		Timeout:         util.GetFromParamsWithDefault(t.Params, "timeout", "30s"),
-		StartPeriod:     util.GetFromParamsWithDefault(t.Params, "start-period", "0s"),
-		StartInterval:   util.GetFromParamsWithDefault(t.Params, "start-interval", "5s"),
+		Interval:        util.GetFromParamsWithDefault(t.Params, "interval", []string{"30s"})[0],
+		Timeout:         util.GetFromParamsWithDefault(t.Params, "timeout", []string{"30s"})[0],
+		StartPeriod:     util.GetFromParamsWithDefault(t.Params, "start-period", []string{"0s"})[0],
+		StartInterval:   util.GetFromParamsWithDefault(t.Params, "start-interval", []string{"5s"})[0],
 		Retries:         retries,
 		Cmd:             parsePossibleArray(t.Content),
 	}
@@ -266,18 +266,21 @@ func (p Parser) parseOnBuild(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseRun(t token.Token) ast.InstructionNode {
+	var content []string
 	// We do nothing with heredoc except add it directly
 	if len(t.MultiLineContent) != 0 {
-		return &ast.RunInstructionNode{
-			Cmd:       t.MultiLineContent,
-			ShellForm: false,
-			IsHeredoc: true,
-		}
+		content = t.MultiLineContent
+	} else {
+		content = parsePossibleArray(t.Content)
 	}
 	return &ast.RunInstructionNode{
-		Cmd:       parsePossibleArray(t.Content),
+		Cmd:       content,
 		ShellForm: false,
-		IsHeredoc: false,
+		IsHeredoc: len(t.MultiLineContent) > 0,
+		Device:    util.GetFromParamsWithDefault(t.Params, "device", []string{""})[0],
+		Security:  util.GetFromParamsWithDefault(t.Params, "security", []string{""})[0], // technically the default here is sandbox...but currently this parameter only exists in labs
+		Network:   util.GetFromParamsWithDefault(t.Params, "network", []string{""})[0],
+		Mount:     util.GetFromParamsWithDefault(t.Params, "mount", []string{}),
 	}
 }
 

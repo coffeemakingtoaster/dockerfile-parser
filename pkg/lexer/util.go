@@ -76,7 +76,7 @@ func (l *Lexer) advanceParam() (string, string, bool) {
 				// Support params with no passed value
 				if l.expectCurrentCharacter(' ') {
 					endIndex = l.currentIndex
-					value = "true"
+					value = "true" // these are assignments without = -> flags
 					key = l.lines[l.currentLine][currentWordStartIndex:l.currentIndex]
 					break
 				}
@@ -104,13 +104,13 @@ func (l *Lexer) buildToken(kind int) token.Token {
 		}
 		return token.Token{Kind: kind, Content: l.lines[l.currentLine][l.currentIndex:]}
 	}
-	params := make(map[string]string)
+	params := make(map[string][]string)
 	for {
 		key, value, ok := l.advanceParam()
 		if !ok {
 			break
 		}
-		params[key] = value
+		params[key] = append(params[key], value)
 	}
 	if kind == token.RUN || kind == token.COPY {
 		if l.containsHeredoc() {
@@ -127,7 +127,7 @@ func (l *Lexer) buildToken(kind int) token.Token {
 	}
 }
 
-func (l *Lexer) buildHereDocToken(kind int, params map[string]string) token.Token {
+func (l *Lexer) buildHereDocToken(kind int, params map[string][]string) token.Token {
 	// Get identifier and go until end
 	heredocContent := []string{}
 	encounteredRedirection := strings.HasPrefix(l.lines[l.currentLine][l.currentIndex:], "<<-")
