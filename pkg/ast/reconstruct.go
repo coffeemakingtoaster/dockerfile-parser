@@ -55,7 +55,17 @@ func (ai *AddInstructionNode) Reconstruct() []string {
 }
 
 func (ai *ArgInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s %s=%s", ai.Instruction(), ai.Name, ai.Value)
+	reconstructed := fmt.Sprintf("%s", ai.Instruction())
+	keys := make([]string, len(ai.Pairs))
+	index := 0
+	for k := range ai.Pairs {
+		keys[index] = k
+		index++
+	}
+	slices.Sort(keys)
+	for _, k := range keys {
+		reconstructed += fmt.Sprintf(" %s=%s", k, ai.Pairs[k])
+	}
 	return []string{reconstructed}
 }
 

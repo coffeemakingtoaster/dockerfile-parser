@@ -116,7 +116,7 @@ func compareInstructionNode(expected, actual ast.InstructionNode) string {
 	case *ast.AddInstructionNode:
 		return compareAddInstructionNode(expected.(*ast.AddInstructionNode), ac)
 	case *ast.ArgInstructionNode:
-		if *expected.(*ast.ArgInstructionNode) != *ac {
+		if !reflect.DeepEqual(expected.(*ast.ArgInstructionNode).Pairs, ac.Pairs) {
 			return fmt.Sprintf("ARG instruction mismatch: Expected %v Got %v", expected, ac)
 		}
 	case *ast.CmdInstructionNode:
@@ -314,8 +314,7 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.ArgInstructionNode{
-				Name:  "test",
-				Value: "value",
+				Pairs: map[string]string{"test": "value"},
 			}},
 		},
 		{
@@ -326,8 +325,7 @@ func TestInstructionParsing(t *testing.T) {
 				},
 			},
 			Expected: []ast.InstructionNode{&ast.ArgInstructionNode{
-				Name:  "test",
-				Value: "",
+				Pairs: map[string]string{"test": ""},
 			}},
 		},
 		{
