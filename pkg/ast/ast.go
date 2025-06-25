@@ -4,6 +4,7 @@ package ast
 import (
 	"fmt"
 	"math/rand"
+	"slices"
 	"strings"
 )
 
@@ -105,12 +106,20 @@ func (ai *AddInstructionNode) Instruction() string { return "ADD" }
 
 // ARG
 type ArgInstructionNode struct {
-	Name  string
-	Value string // optional default
+	Pairs map[string]string
 }
 
 func (ai *ArgInstructionNode) ToString() string {
-	return fmt.Sprintf("%sARG%s %s %s %s", colorPurple, colorCyan, ai.Name, ai.Value, colorNone)
+	mapStrings := []string{}
+	keys := make([]string, 0, len(ai.Pairs))
+	for k := range ai.Pairs {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	for _, k := range keys {
+		mapStrings = append(mapStrings, fmt.Sprintf("%s=%s", k, ai.Pairs[k]))
+	}
+	return fmt.Sprintf("%sARG%s %s %s", colorPurple, colorCyan, strings.Join(mapStrings, ","), colorNone)
 }
 
 func (ai *ArgInstructionNode) Instruction() string { return "ARG" }

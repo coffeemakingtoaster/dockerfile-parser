@@ -58,13 +58,28 @@ func TestReconstructInstruction(t *testing.T) {
 			Input: ast.StageNode{
 				Instructions: []ast.InstructionNode{
 					&ast.ArgInstructionNode{
-						Name:  "abc",
-						Value: "def",
+						Pairs: map[string]string{
+							"abc": "def",
+						},
 					},
 				},
 			},
 			Expected: []string{"ARG abc=def"},
 		},
+		{
+			Input: ast.StageNode{
+				Instructions: []ast.InstructionNode{
+					&ast.ArgInstructionNode{
+						Pairs: map[string]string{
+							"abc": "def",
+							"xy":  "z",
+						},
+					},
+				},
+			},
+			Expected: []string{"ARG abc=def xy=z"},
+		},
+
 		{
 			Input: ast.StageNode{
 				Instructions: []ast.InstructionNode{
