@@ -26,11 +26,12 @@ func escapeSlice[T any](slice []T) string {
 func (sn *StageNode) Reconstruct() []string {
 	reconstructed := []string{}
 	if sn.Image != "" {
-		fromInstruction := fmt.Sprintf("FROM %s", sn.Image)
+		var fromInstruction strings.Builder
+		fromInstruction.WriteString(fmt.Sprintf("FROM %s", sn.Image))
 		if sn.Name != "" {
-			fromInstruction += fmt.Sprintf(" AS %s", sn.Name)
+			fromInstruction.WriteString(fmt.Sprintf(" AS %s", sn.Name))
 		}
-		reconstructed = append(reconstructed, fromInstruction)
+		reconstructed = append(reconstructed, fromInstruction.String())
 	}
 	for _, instructionNode := range sn.Instructions {
 		reconstructed = append(reconstructed, instructionNode.Reconstruct()...)
@@ -74,22 +75,24 @@ func (ci *CmdInstructionNode) Reconstruct() []string {
 	return []string{reconstructed}
 }
 func (ci *CopyInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s ", ci.Instruction())
+	var reconstructed strings.Builder
+	reconstructed.WriteString(fmt.Sprintf("%s ", ci.Instruction()))
 
-	reconstructed += formatIfValue("--keep-git-dir=%s ", strconv.FormatBool(ci.KeepGitDir))
-	reconstructed += formatIfValue("--chown=%s ", ci.Chown)
-	reconstructed += formatIfValue("--link=%s ", strconv.FormatBool(ci.Link))
-	reconstructed += formatIfValue("--from=%s ", ci.From)
-	reconstructed += fmt.Sprintf("%s ", strings.Join(ci.Source, " "))
-	reconstructed += fmt.Sprintf("%s", ci.Destination)
-	return []string{reconstructed}
+	reconstructed.WriteString(formatIfValue("--keep-git-dir=%s ", strconv.FormatBool(ci.KeepGitDir)))
+	reconstructed.WriteString(formatIfValue("--chown=%s ", ci.Chown))
+	reconstructed.WriteString(formatIfValue("--link=%s ", strconv.FormatBool(ci.Link)))
+	reconstructed.WriteString(formatIfValue("--from=%s ", ci.From))
+	reconstructed.WriteString(fmt.Sprintf("%s ", strings.Join(ci.Source, " ")))
+	reconstructed.WriteString(fmt.Sprintf("%s", ci.Destination))
+	return []string{reconstructed.String()}
 }
 func (ei *EntrypointInstructionNode) Reconstruct() []string {
 	reconstructed := fmt.Sprintf("%s %s", ei.Instruction(), escapeSlice(ei.Exec))
 	return []string{reconstructed}
 }
 func (ei *EnvInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s", ei.Instruction())
+	var reconstructed strings.Builder
+	reconstructed.WriteString(fmt.Sprintf("%s", ei.Instruction()))
 	keys := make([]string, len(ei.Pairs))
 	index := 0
 	for k := range ei.Pairs {
@@ -98,41 +101,52 @@ func (ei *EnvInstructionNode) Reconstruct() []string {
 	}
 	slices.Sort(keys)
 	for _, k := range keys {
-		reconstructed += fmt.Sprintf(" %s=%s", k, ei.Pairs[k])
+		reconstructed.WriteString(fmt.Sprintf(" %s=%s", k, ei.Pairs[k]))
 	}
-	return []string{reconstructed}
+	return []string{reconstructed.String()}
 }
 
 func (ei *ExposeInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s", ei.Instruction())
+	var reconstructed strings.Builder
+	reconstructed.WriteString(fmt.Sprintf("%s", ei.Instruction()))
 	for _, port := range ei.Ports {
 		protocol := "tcp"
 		if !port.IsTCP {
 			protocol = "udp"
 		}
-		reconstructed += fmt.Sprintf(" %s/%s", port.Port, protocol)
+		reconstructed.WriteString(fmt.Sprintf(" %s/%s", port.Port, protocol))
 	}
-	return []string{reconstructed}
+	return []string{reconstructed.String()}
 }
 func (hi *HealthcheckInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s ", hi.Instruction())
+	var reconstructed strings.Builder
+	reconstructed.WriteString(fmt.Sprintf("%s ", hi.Instruction()))
 	if hi.CancelStatement {
-		return []string{reconstructed + "NONE"}
+		reconstructed.WriteString("NONE")
+		return []string{reconstructed.String()}
 	}
-	reconstructed += formatIfValue("--interval=%s ", hi.Interval)
-	reconstructed += formatIfValue("--timeout=%s ", hi.Timeout)
-	reconstructed += formatIfValue("--start-period=%s ", hi.StartPeriod)
-	reconstructed += formatIfValue("--start-interval=%s ", hi.StartInterval)
-	reconstructed += formatIfValue("--retries=%s ", strconv.Itoa(hi.Retries))
-	reconstructed += escapeSlice(hi.Cmd)
-	return []string{reconstructed}
+	reconstructed.WriteString(formatIfValue("--interval=%s ", hi.Interval))
+	reconstructed.WriteString(formatIfValue("--timeout=%s ", hi.Timeout))
+	reconstructed.WriteString(formatIfValue("--start-period=%s ", hi.StartPeriod))
+	reconstructed.WriteString(formatIfValue("--start-interval=%s ", hi.StartInterval))
+	reconstructed.WriteString(formatIfValue("--retries=%s ", strconv.Itoa(hi.Retries)))
+	reconstructed.WriteString(escapeSlice(hi.Cmd))
+	return []string{reconstructed.String()}
 }
 func (li *LabelInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s", li.Instruction())
-	for k, v := range li.Pairs {
-		reconstructed += fmt.Sprintf(" %s=%s", k, v)
+	var reconstructed strings.Builder
+	reconstructed.WriteString(fmt.Sprintf("%s", li.Instruction()))
+	keys := make([]string, len(li.Pairs))
+	index := 0
+	for k := range li.Pairs {
+		keys[index] = k
+		index++
 	}
-	return []string{reconstructed}
+	slices.Sort(keys)
+	for _, k := range keys {
+		reconstructed.WriteString(fmt.Sprintf(" %s=%s", k, li.Pairs[k]))
+	}
+	return []string{reconstructed.String()}
 }
 func (mi *MaintainerInstructionNode) Reconstruct() []string {
 	reconstructed := fmt.Sprintf("%s %s", mi.Instruction(), mi.Name)
@@ -145,14 +159,16 @@ func (oi *OnbuildInstructionNode) Reconstruct() []string {
 	return nested
 }
 func (ri *RunInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s ", ri.Instruction())
+	var reconstructed strings.Builder
+	reconstructed.WriteString(fmt.Sprintf("%s ", ri.Instruction()))
 	if !ri.ShellForm && !ri.IsHeredoc {
-		return []string{reconstructed + escapeSlice(ri.Cmd)}
+		reconstructed.WriteString(escapeSlice(ri.Cmd))
+		return []string{reconstructed.String()}
 	}
 	if ri.IsHeredoc {
-		reconstructed += "<< "
+		reconstructed.WriteString("<< ")
 	}
-	ri.Cmd[0] = reconstructed + ri.Cmd[0]
+	ri.Cmd[0] = reconstructed.String() + ri.Cmd[0]
 	return ri.Cmd
 }
 func (si *ShellInstructionNode) Reconstruct() []string {
