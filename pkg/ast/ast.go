@@ -110,8 +110,13 @@ type ArgInstructionNode struct {
 
 func (ai *ArgInstructionNode) ToString() string {
 	mapStrings := []string{}
-	for k, v := range ai.Pairs {
-		mapStrings = append(mapStrings, fmt.Sprintf("%s=%s", k, v))
+	keys := make([]string, 0, len(ai.Pairs))
+	for k := range ai.Pairs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		mapStrings = append(mapStrings, fmt.Sprintf("%s=%s", k, ai.Pairs[k]))
 	}
 	return fmt.Sprintf("%sARG%s %s %s", colorPurple, colorCyan, strings.Join(mapStrings, ","), colorNone)
 }
