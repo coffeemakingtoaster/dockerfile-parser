@@ -4,6 +4,7 @@ package ast
 import (
 	"fmt"
 	"math/rand"
+	"slices"
 	"strings"
 )
 
@@ -114,7 +115,7 @@ func (ai *ArgInstructionNode) ToString() string {
 	for k := range ai.Pairs {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 	for _, k := range keys {
 		mapStrings = append(mapStrings, fmt.Sprintf("%s=%s", k, ai.Pairs[k]))
 	}
