@@ -19,6 +19,7 @@ func main() {
 	}
 	p := parser.NewParser(tokens)
 	rootNode := p.Parse()
+	reconstruct := rootNode.Reconstruct()
 	for rootNode != nil {
 		fmt.Printf("Stage:  %s\n", rootNode.Identifier)
 		if len(rootNode.Instructions) > 0 {
@@ -26,10 +27,10 @@ func main() {
 				fmt.Printf("InstructionNode: %s\n", reflect.TypeOf(instr))
 			}
 		}
-		if len(rootNode.Subsequent) == 0 {
-			rootNode = nil
-			continue
-		}
-		rootNode = rootNode.Subsequent[0]
+		rootNode = rootNode.Subsequent
+	}
+
+	for _, l := range reconstruct {
+		fmt.Println(l)
 	}
 }
