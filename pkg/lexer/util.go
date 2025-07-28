@@ -200,6 +200,11 @@ func mergeLines(input []string) []string {
 			buffer = strings.TrimSuffix(buffer, "\\")
 			continue
 		}
+		// swallow mid instruction comments
+		// TODO: parse this properly
+		if strings.HasPrefix(in, "#") && len(buffer) > len(in) {
+			continue
+		}
 		target = append(target, buffer)
 		buffer = ""
 	}

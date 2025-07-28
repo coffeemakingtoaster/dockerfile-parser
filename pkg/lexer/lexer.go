@@ -43,7 +43,7 @@ func (l *Lexer) Lex() ([]token.Token, error) {
 		case token.EOF:
 			break
 		case token.ILLEGAL:
-			return tokens, errors.New(fmt.Sprintf("Illegal instruction encountered (line: %d)", l.currentLine))
+			return tokens, errors.New(fmt.Sprintf("Illegal instruction encountered (line: %d) see above for details", l.currentLine))
 		default:
 			t := l.buildToken(instruction)
 			tokens = append(tokens, t)
@@ -73,6 +73,7 @@ func (l *Lexer) getCurrentInstruction() int {
 	if ok {
 		return instruction
 	}
+	fmt.Printf("Illegal statement: %s", currentLine)
 	return token.ILLEGAL
 }
 
