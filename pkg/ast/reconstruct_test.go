@@ -84,11 +84,11 @@ func TestReconstructInstruction(t *testing.T) {
 			Input: ast.StageNode{
 				Instructions: []ast.InstructionNode{
 					&ast.CmdInstructionNode{
-						Cmd: []string{"curl", "ssh-coffee.dev"},
+						Cmd: []string{"curl", "ssh-coffee.dev", "&&", "whoami"},
 					},
 				},
 			},
-			Expected: []string{"CMD [\"curl\",\"ssh-coffee.dev\"]"},
+			Expected: []string{"CMD [\"curl\",\"ssh-coffee.dev\",\"&&\",\"whoami\"]"},
 		},
 		{
 			Input: ast.StageNode{

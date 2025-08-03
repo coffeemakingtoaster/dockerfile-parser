@@ -1,7 +1,6 @@
 package ast
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strconv"
@@ -16,11 +15,18 @@ func formatIfValue(fstring, value string) string {
 }
 
 func escapeSlice[T any](slice []T) string {
-	jsonBytes, err := json.Marshal(slice)
-	if err != nil {
-		panic(err)
+	var sb strings.Builder
+	sb.WriteString("[")
+	for i, v := range slice {
+		sb.WriteRune('"')
+		sb.WriteString(fmt.Sprintf("%v", v))
+		sb.WriteRune('"')
+		if i != len(slice)-1 {
+			sb.WriteRune(',')
+		}
 	}
-	return string(jsonBytes)
+	sb.WriteString("]")
+	return sb.String()
 }
 
 func (sn *StageNode) Reconstruct() []string {
