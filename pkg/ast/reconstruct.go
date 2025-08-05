@@ -198,7 +198,7 @@ func (vi *VolumeInstructionNode) Reconstruct() []string {
 }
 
 func (wi *WorkdirInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s %s", wi.Instruction(), wi.Path)
+	reconstructed := fmt.Sprintf("%s%s", wi.Instruction(), wi.Path)
 	return []string{reconstructed}
 }
 func (ci *CommentInstructionNode) Reconstruct() []string {
