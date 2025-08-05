@@ -202,7 +202,7 @@ func (wi *WorkdirInstructionNode) Reconstruct() []string {
 	return []string{reconstructed}
 }
 func (ci *CommentInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("# %s", ci.Text)
+	reconstructed := fmt.Sprintf("#%s", ci.Text)
 	return []string{reconstructed}
 }
 

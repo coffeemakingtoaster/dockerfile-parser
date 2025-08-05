@@ -305,7 +305,7 @@ func TestReconstructInstruction(t *testing.T) {
 			Input: ast.StageNode{
 				Instructions: []ast.InstructionNode{
 					&ast.CommentInstructionNode{
-						Text: "Hello",
+						Text: " Hello",
 					},
 				},
 			},
