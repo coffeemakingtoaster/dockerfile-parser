@@ -150,6 +150,27 @@ func TestInstructionParse(t *testing.T) {
 			},
 		},
 		{
+			Input: []string{"RUN echo --long-param"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:    token.RUN,
+					Params:  map[string][]string{},
+					Content: "echo --long-param",
+				},
+			},
+		},
+
+		{
+			Input: []string{"RUN [\"apt\",\"--yes\",\"install\",\"vim\"]"},
+			ExpectedOutput: []token.Token{
+				{
+					Kind:    token.RUN,
+					Params:  map[string][]string{},
+					Content: "RUN [\"apt\",\"--yes\",\"install\",\"vim\"]",
+				},
+			},
+		},
+		{
 			Input: []string{"RUN echo 'a # test'"},
 			ExpectedOutput: []token.Token{
 				{
