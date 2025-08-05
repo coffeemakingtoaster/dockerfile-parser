@@ -304,5 +304,5 @@ func (p Parser) parseVolume(t token.Token) ast.InstructionNode {
 }
 
 func (p Parser) parseWorkdir(t token.Token) ast.InstructionNode {
-	return &ast.WorkdirInstructionNode{Path: t.Content}
+	return &ast.WorkdirInstructionNode{Path: strings.TrimSpace(t.Content)}
 }

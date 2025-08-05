@@ -198,7 +198,8 @@ func (vi *VolumeInstructionNode) Reconstruct() []string {
 }
 
 func (wi *WorkdirInstructionNode) Reconstruct() []string {
-	reconstructed := fmt.Sprintf("%s%s", wi.Instruction(), wi.Path)
+	// This is fine because the path is space trimmed
+	reconstructed := fmt.Sprintf("%s %s", wi.Instruction(), wi.Path)
 	return []string{reconstructed}
 }
 func (ci *CommentInstructionNode) Reconstruct() []string {
