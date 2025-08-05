@@ -48,8 +48,12 @@ func (l *Lexer) advanceParam() (string, string, bool) {
 		return key, value, ok
 	}
 	startIndex := l.currentIndex
-
 	for l.currentIndex < endIndex {
+		// Cover edge case where parameters in array struct like this were parsed as instruction parameters
+		// There may be a cleaner solution for this
+		if l.expectCurrentCharacter('[') && !ok {
+			break
+		}
 		if l.expectCurrentCharacter(' ') && !ok {
 			if !seenCharacters {
 				l.currentIndex++

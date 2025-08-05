@@ -2,7 +2,6 @@
 package lexer
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -43,7 +42,7 @@ func (l *Lexer) Lex() ([]token.Token, error) {
 		case token.EOF:
 			break
 		case token.ILLEGAL:
-			return tokens, errors.New(fmt.Sprintf("Illegal instruction encountered (line: %d) see above for details", l.currentLine))
+			return tokens, fmt.Errorf("Illegal instruction encountered (line: %d) see above for details", l.currentLine)
 		default:
 			t := l.buildToken(instruction)
 			tokens = append(tokens, t)
