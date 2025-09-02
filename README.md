@@ -17,6 +17,7 @@ Note: This is more of a PoC than a production ready parser
 - [ ] The full extend of heredoc (basics are implemented)
 - [ ] Bash like variabe magic
 - [ ] Comments in the middle of multi line run statements are currently swallowed and thrown out as multi line run statements are currently just smashed together
+- [ ] Tab characters after Instructions break the parser 
 
 ## Benchmarking
 
