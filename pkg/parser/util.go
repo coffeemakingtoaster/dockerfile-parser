@@ -39,3 +39,14 @@ func parseConfirmedArray(input string) []string {
 	res = append(res, cur)
 	return res
 }
+func CleanSlice(input []string) []string {
+	result := []string{}
+	for i := range input {
+		cleanPath := strings.TrimSpace(input[i])
+		if len(cleanPath) == 0 {
+			continue
+		}
+		result = append(result, cleanPath)
+	}
+	return result
+}

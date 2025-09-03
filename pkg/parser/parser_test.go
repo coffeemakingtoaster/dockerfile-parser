@@ -357,6 +357,22 @@ func TestInstructionParsing(t *testing.T) {
 		{
 			Input: []token.Token{
 				{
+					Kind:    token.COPY,
+					Content: "./source1          ./source2            ../../dest",
+				},
+			},
+			Expected: []ast.InstructionNode{&ast.CopyInstructionNode{
+				Source:      []string{"./source1", "./source2"},
+				Destination: "../../dest",
+				KeepGitDir:  false,
+				Chown:       "",
+				Link:        false,
+			}},
+		},
+
+		{
+			Input: []token.Token{
+				{
 					Kind:    token.ENTRYPOINT,
 					Content: "cp ./source1 ./source2 ../../dest",
 				},

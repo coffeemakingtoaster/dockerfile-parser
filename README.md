@@ -18,6 +18,7 @@ Note: This is more of a PoC than a production ready parser
 - [ ] Bash like variabe magic
 - [ ] Comments in the middle of multi line run statements are currently swallowed and thrown out as multi line run statements are currently just smashed together
 - [ ] Tab characters after Instructions break the parser 
+- [ ] Rework shell command parsing or embedd shellcheck, currently command1|command2 leads to issues
 
 ## Benchmarking
 

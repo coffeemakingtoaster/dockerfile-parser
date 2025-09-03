@@ -142,9 +142,10 @@ func (p Parser) parseFrom(t token.Token) *ast.StageNode {
 
 func (p Parser) parseAdd(t token.Token) ast.InstructionNode {
 	paths := parsePossibleArray(t.Content)
+	cleanedPaths := CleanSlice(paths)
 	return &ast.AddInstructionNode{
-		Source:      paths[0 : len(paths)-1],
-		Destination: paths[len(paths)-1],
+		Source:      cleanedPaths[0 : len(cleanedPaths)-1],
+		Destination: cleanedPaths[len(cleanedPaths)-1],
 		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", []string{"false"})[0] == "true",
 		CheckSum:    util.GetFromParamsWithDefault(t.Params, "checksum", []string{""})[0],
 		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", []string{""})[0],
@@ -176,9 +177,11 @@ func (p Parser) parseCopy(t token.Token) ast.InstructionNode {
 		return &ast.CopyInstructionNode{}
 	}
 	paths := parsePossibleArray(t.Content)
+	cleanedPaths := CleanSlice(paths)
+
 	return &ast.CopyInstructionNode{
-		Source:      paths[0 : len(paths)-1],
-		Destination: paths[len(paths)-1],
+		Source:      cleanedPaths[0 : len(cleanedPaths)-1],
+		Destination: cleanedPaths[len(cleanedPaths)-1],
 		KeepGitDir:  util.GetFromParamsWithDefault(t.Params, "keep-git-dir", []string{"false"})[0] == "true",
 		Chown:       util.GetFromParamsWithDefault(t.Params, "chown", []string{""})[0],
 		Link:        util.GetFromParamsWithDefault(t.Params, "link", []string{"false"})[0] == "true",

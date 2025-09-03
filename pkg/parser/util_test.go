@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -64,4 +65,14 @@ func TestPaddedArrayParsing(t *testing.T) {
 			t.Errorf("Parsing no array value (index: %d) mismatch: Expected %s Got %s", i, expected[i], actual[i])
 		}
 	}
+}
+
+func TestCleanSlice(t *testing.T) {
+	input := []string{"a", " ", "", "\t", "b", " "}
+	expected := []string{"a", "b"}
+	actual := CleanSlice(input)
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("Slice mismatch: Expected %v Got %v", expected, actual)
+	}
+
 }
