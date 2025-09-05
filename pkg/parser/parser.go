@@ -173,8 +173,8 @@ func (p Parser) parseCmd(t token.Token) ast.InstructionNode {
 
 func (p Parser) parseCopy(t token.Token) ast.InstructionNode {
 	if len(t.MultiLineContent) != 0 {
-		fmt.Print("Heredoc copy statements are not supported as of now")
-		return &ast.CopyInstructionNode{}
+		fmt.Print("Heredoc copy statements are not parsed in the current version")
+		return &ast.CopyInstructionNode{IsHereDoc: true}
 	}
 	paths := parsePossibleArray(t.Content)
 	cleanedPaths := CleanSlice(paths)

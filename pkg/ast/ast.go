@@ -143,6 +143,7 @@ type CopyInstructionNode struct {
 	From        string
 	KeepGitDir  bool
 	Link        bool
+	IsHereDoc   bool
 }
 
 func (ci *CopyInstructionNode) ToString() string {
