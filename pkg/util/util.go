@@ -36,24 +36,66 @@ func ReadFileLines(path string) ([]string, error) {
 	return lines, nil
 }
 
+// TODO: Simplify this! For now this is GPT
 func ParseAssigns(input string) map[string]string {
 	m := make(map[string]string)
-	parts := strings.Split(input, " ")
+	parts := tokenize(input)
+
 	var key string
-	for _, p := range parts {
+	for i := 0; i < len(parts); i++ {
+		p := parts[i]
+
+		// Try normal KEY=VAL first
 		k, v := ParseAssign(p)
-		// If there is a key but the next assignment could not be parsed:
-		// This should mean that the assigned value uses " and contains a space -> attach to previous key
-		if v == "" {
-			if key != "" {
-				m[key] = m[key] + " " + p
-			}
+		if k != "" && v != "" {
+			m[k] = v
 			continue
 		}
-		key = k
-		m[key] = v
+
+		// Otherwise alternate KEY VAL
+		if key == "" {
+			key = p
+		} else {
+			m[key] = p
+			key = ""
+		}
+	}
+	if key != "" {
+		m[key] = "" // dangling key
 	}
 	return m
+}
+
+func tokenize(input string) []string {
+	var tokens []string
+	var buf strings.Builder
+	inQuotes := false
+
+	for i := 0; i < len(input); i++ {
+		c := input[i]
+
+		switch c {
+		case '"':
+			inQuotes = !inQuotes
+			buf.WriteByte(c) // keep the quote
+		case ' ':
+			if inQuotes {
+				buf.WriteByte(c)
+			} else {
+				if buf.Len() > 0 {
+					tokens = append(tokens, buf.String())
+					buf.Reset()
+				}
+			}
+		default:
+			buf.WriteByte(c)
+		}
+	}
+
+	if buf.Len() > 0 {
+		tokens = append(tokens, buf.String())
+	}
+	return tokens
 }
 
 func ParseAssign(input string) (string, string) {
